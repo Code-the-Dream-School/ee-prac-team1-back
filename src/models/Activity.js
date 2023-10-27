@@ -3,17 +3,12 @@ const mongoose = require("mongoose");
 const ActivitySchema = new mongoose.Schema({
   sportType: {
     type: String,
-    required: [true, "Please provide the type of sport or activity"],
+    required: [true, "Sport type is required."],
   },
-  description: {
-    type: String,
-  },
-  date: {
+  description: String,
+  datetime: {
     type: Date,
-    required: [true, "Please provide the date of the activity"],
-  },
-  time: {
-    type: String,
+    required: [true, "Date and time of the activity are required."],
   },
   location: {
     placeNum: String,
@@ -22,40 +17,23 @@ const ActivitySchema = new mongoose.Schema({
     state: String,
     zipCode: String,
   },
-  listOfPlayers: {
-    type: [String],
-  },
-  numberOfPlayers: {
+  players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  maxPlayers: Number,
+  minPlayers: Number,
+  fees: {
     type: Number,
     default: 0,
   },
-  maxNumOfPlayer: {
-    type: Number,
-  },
-  minNumOfPlayers: {
-    type: Number,
-  },
-  fees: {
-    type: String,
-  },
   indoorOutdoor: {
     type: String,
+    enum: ["indoor", "outdoor", "online"],
   },
-  anticipatedWeather: {
-    type: String,
-  },
-  anticipatedTemp: {
-    type: Number,
-  },
-  organizerName: {
-    type: String,
-  },
-  organizerNum: {
-    type: String,
-  },
-  notes: {
-    type: String,
-  },
+  anticipatedWeather: String,
+  anticipatedTemp: Number,
+  organizer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  contactName: String,
+  contactNum: Number,
+  notes: String,
 });
 
 module.exports = mongoose.model("Activity", ActivitySchema);

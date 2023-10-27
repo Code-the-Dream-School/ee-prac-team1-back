@@ -1,42 +1,41 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
-    required: [true, "Please provide name"],
+    required: [true, "First name is required"],
     maxlength: 50,
-    minlength: 3,
+  },
+  lastName: {
+    type: String,
+    required: [true, "Last name is required"],
+    maxlength: 50,
   },
   username: {
     type: String,
-    required: [true, "Please provide username"],
-    unique: [true, "That username already exists"],
-    maxlength: 50,
+    required: [true, "Username is required"],
+    unique: true,
     minlength: 3,
+    maxlength: 50,
   },
   email: {
     type: String,
-    required: [true, "Please provide email"],
-    match: [
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      "Please provide a valid email",
-    ],
+    required: [true, "Email is required"],
     unique: true,
+    lowercase: true,
+    match: [
+      /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,
+      "Please provide a valid email address",
+    ],
   },
   password: {
     type: String,
-    required: [true, "Please provide password"],
+    required: [true, "Password is required"],
     minlength: 6,
   },
-  yearsOfExperience: {
-    type: Number,
-  },
-  listOfJoinedGames: {
-    type: [String],
-  },
-  dateOfBirth: {
-    type: Date,
-  },
+  experience: Number,
+  activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
+  dateOfBirth: Date,
   address: {
     houseAptNum: String,
     street: String,
@@ -44,12 +43,8 @@ const UserSchema = new mongoose.Schema({
     state: String,
     zipCode: String,
   },
-  profileImage: {
-    type: String, // You can store the image URL or binary data, depending on your needs.
-  },
-  phoneNumber: {
-    type: String, // You can specify a format or validation rules for phone numbers.
-  },
+  profileImage: String,
+  phoneNumber: String,
 });
 
 module.exports = mongoose.model("User", UserSchema);
