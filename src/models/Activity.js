@@ -3,60 +3,38 @@ const mongoose = require("mongoose");
 const ActivitySchema = new mongoose.Schema({
   sportType: {
     type: String,
-    default: 'pickleball',
-    required: [true, "Please provide the type of sport or activity"],
+
+    required: [true, "Sport type is required."],
+  },
+  description: String,
+  datetime: {
+    type: Date,
+    required: [true, "Date and time of the activity are required."],
   },
   location: {
-    address: { type: String, required: true },
-    city: { type: String, required: true },
-    zipCode: { type: Number, required: true },
-    state: { type: String, required: true }
+    placeNum: String,
+    street: String,
+    city: String,
+    state: String,
+    zipCode: String,
   },
-  locationType: {
-    type: String,
-    enum: ['indoor', 'outdoor', 'online'],
-    default: 'outdoor',
-  },
-  date: {
-    type: Date,
-    required: [true, "Please provide the date of the activity"],
-  },
-  time: {
-    type: String,
-    required: [true, "Please provide exact time of the activity"],
-  },
-  listOfPlayers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  }],
-  numberOfPlayers: {
+  players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  maxPlayers: Number,
+  minPlayers: Number,
+  fees: {
     type: Number,
     default: 0,
   },
-  maxNumOfPlayers: {
-    type: Number,
-  },
-  minNumOfPlayers: {
-    type: Number,
-  },
-  hostName: {
+  indoorOutdoor: {
     type: String,
+    enum: ["indoor", "outdoor", "online"],
   },
-  hostEmail: {
-    type: String,
-  },
-  hostPhoneNumber: {
-    type: String,
-  },
-  notes: {
-    type: String,
-  },
-  createdBy: {
-    type: mongoose.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Please provide user'],
-  },
-},
-  { timestamps: true });
+  anticipatedWeather: String,
+  anticipatedTemp: Number,
+  organizer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  contactName: String,
+  contactNum: Number,
+  notes: String,
+});
 
 module.exports = mongoose.model("Activity", ActivitySchema);

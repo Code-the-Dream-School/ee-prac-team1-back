@@ -5,66 +5,52 @@ const jwt = require('jsonwebtoken');
 const UserSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: [true, 'Please, enter your First Name'],
-    minlength: 3,
-    maxlenght: 20,
-    trim: true
+
+    required: [true, "First name is required"],
+    maxlength: 50,
   },
   lastName: {
     type: String,
-    required: [true, 'Please, enter your Last Name'],
-    minlength: 3,
-    maxlenght: 20,
-    trim: true
+    required: [true, "Last name is required"],
+    maxlength: 50,
   },
-  userName: {
+  username: {
     type: String,
-    required: [true, "Please, enter your Username"],
+    required: [true, "Username is required"],
+
     unique: true,
     minlength: 3,
     maxlength: 50,
   },
   email: {
     type: String,
-    required: [true, 'Please, enter your email address'],
-    match: [
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      'Please enter valid email address',
-    ],
+
+    required: [true, "Email is required"],
     unique: true,
-    lowercase: true
+    lowercase: true,
+    match: [
+      /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,
+      "Please provide a valid email address",
+    ],
   },
   password: {
     type: String,
-    required: [true, 'Please, enter your password'],
-    minlength: [5, 'Password must be at least 5 characters'],
+    required: [true, "Password is required"],
+    minlength: 6,
   },
-  experienceLevel: {
-    type: String,
-    required: [true, 'Please, select your experience level'],
-    enum: ['beginner/novice', 'intermediate', 'advance', 'expert'],
-    default: 'intermediate',
+  experience: Number,
+  activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
+  dateOfBirth: Date,
+  address: {
+    houseAptNum: String,
+    street: String,
+    city: String,
+    state: String,
+    zipCode: String,
   },
-  dateOfBirth: {
-    type: Date
-  },
-  gender: {
-    type: String,
-    enum: ['female', 'male'],
-  },
-  profileImage: {
-    type: String
-  },
-  phoneNumber: {
-    type: String
-  },
-},
-  { timestamps: true }
-);
+  profileImage: String,
+  phoneNumber: String,
 
-UserSchema.pre('save', async function () {
-  const salt = await bcrypt.genSalt(10); // hashing the password
-  this.password = await bcrypt.hash(this.password, salt);
 });
 
 UserSchema.methods.createJWT = function () {
