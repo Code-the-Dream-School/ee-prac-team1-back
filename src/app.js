@@ -33,18 +33,5 @@ app.use('/api/v1/activities', authenticateUser, activitiesRouter);
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-const port = process.env.PORT || 8000;
-const start = async () => {
-    try {
-        // connectDB
-        await connectDB(process.env.MONGO_URI);
-
-        app.listen(port, console.log(`Server is listening on port ${port}...`));
-    } catch (error) {
-        console.log(error);
-    }
-};
-
-start();
 
 module.exports = app;
