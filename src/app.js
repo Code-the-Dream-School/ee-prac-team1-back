@@ -7,8 +7,6 @@ const favicon = require("express-favicon");
 const logger = require("morgan");
 const session = require("express-session");
 
-// connectDB
-const connectDB = require("./db/connect");
 // importing auth middleware to protect our Activity routes
 const authenticateUser = require("./middleware/authentication");
 // ROUTERS
