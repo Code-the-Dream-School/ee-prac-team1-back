@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const favicon = require("express-favicon");
 const logger = require("morgan");
+const session = require("express-session");
 
 // connectDB
 const connectDB = require("./db/connect");
@@ -26,6 +27,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(logger("dev"));
 app.use(express.static("public"));
 app.use(favicon(__dirname + "/public/favicon.ico"));
+app.use(
+  session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 
 // ROUTES
 app.use("/api/v1", mainRouter);
