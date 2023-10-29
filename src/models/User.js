@@ -52,6 +52,10 @@ const UserSchema = new mongoose.Schema({
   phoneNumber: String,
 
 });
+UserSchema.pre('save', async function () {
+  const salt = await bcrypt.genSalt(10); // hashing the password
+  this.password = await bcrypt.hash(this.password, salt);
+});
 
 UserSchema.methods.createJWT = function () {
   return jwt.sign(
