@@ -6,33 +6,49 @@ const ActivitySchema = new mongoose.Schema({
     required: [true, "Sport type is required."],
   },
   description: String,
-  datetime: {
+  date: {
     type: Date,
-    required: [true, "Date and time of the activity are required."],
+    required: [true, "Date of the activity is required."],
+  },
+  time: {
+    type: String,
+    required: [true, "Time of the activity is required."],
   },
   location: {
     placeNum: String,
-    street: String,
-    city: String,
-    state: String,
-    zipCode: String,
-  },
-  players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  maxPlayers: Number,
-  minPlayers: Number,
-  fees: {
-    type: Number,
-    default: 0,
+    street: {
+      type: String,
+      required: [true, "Street is required."],
+    },
+    city: {
+      type: String,
+      required: [true, "City is required."],
+    },
+    state: {
+      type: String,
+      required: [true, "State is required."],
+    },
+    zipCode: {
+      type: String,
+      required: [true, "Zip Code is required."],
+    },
   },
   indoorOutdoor: {
     type: String,
     enum: ["indoor", "outdoor", "online"],
   },
-  anticipatedWeather: String,
-  anticipatedTemp: Number,
-  organizer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  maxPlayers: { type: Number, default: 10 },
+  minPlayers: { type: Number, default: 2 },
+  weather: String,
+  tempF: Number,
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   contactName: String,
-  contactNum: Number,
+  contactNum: String,
+  fees: {
+    type: Number,
+    default: 0,
+  },
   notes: String,
 });
 

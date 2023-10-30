@@ -1,21 +1,11 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema({
-  firstName: {
+  name: {
     type: String,
-    required: [true, "First name is required"],
-    maxlength: 50,
-  },
-  lastName: {
-    type: String,
-    required: [true, "Last name is required"],
-    maxlength: 50,
-  },
-  username: {
-    type: String,
-    required: [true, "Username is required"],
-    unique: true,
-    minlength: 3,
+    required: [true, "Name is required"],
     maxlength: 50,
   },
   email: {
@@ -33,7 +23,10 @@ const UserSchema = new mongoose.Schema({
     required: [true, "Password is required"],
     minlength: 6,
   },
-  experience: Number,
+  expertiseLevel: {
+    type: String,
+    enum: ["Beginner", "Intermediate", "Advanced"],
+  },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
   dateOfBirth: Date,
   address: {
@@ -46,5 +39,30 @@ const UserSchema = new mongoose.Schema({
   profileImage: String,
   phoneNumber: String,
 });
+
+UserSchema.pre("save", async function () {
+  const salt = await bcrypt.genSalt(10); // hashing the password
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+UserSchema.methods.createJWT = function () {
+  return jwt.sign(
+    {
+      userId: this._id,
+      name: this.name,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_LIFETIME }
+  );
+};
+
+UserSchema.methods.comparePassword = async function (enteredPassword) {
+  try {
+    const isMatch = await bcrypt.compare(enteredPassword, this.password);
+    return isMatch;
+  } catch (error) {
+    throw error;
+  }
+};
 
 module.exports = mongoose.model("User", UserSchema);
