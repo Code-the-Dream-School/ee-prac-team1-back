@@ -3,8 +3,12 @@ const { StatusCodes } = require("http-status-codes");
 const { BadRequestError, NotFoundError } = require("../errors");
 
 const getAllActivities = async (req, res) => {
-  const activities = await Activity.find();
-  res.status(StatusCodes.OK).json({ activities, count: activities.length });
+  try {
+    const activities = await Activity.find();
+    res.status(StatusCodes.OK).json({ activities, count: activities.length });
+  } catch (error) {
+    throw new BadRequestError("Error with getAllActivites");
+  }
 };
 
 // const mainController = {};
