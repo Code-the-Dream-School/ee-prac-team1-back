@@ -34,7 +34,7 @@ app.use(
 );
 
 // ROUTES
-app.use("/api/v1", mainRouter);
+app.use("/api/v1/", mainRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/activities", authenticateUser, activitiesRouter);
 
