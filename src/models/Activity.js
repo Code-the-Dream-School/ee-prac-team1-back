@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const ActivitySchema = new mongoose.Schema({
-  sportType: {
+  activityType: {
     type: String,
     default: "pickleball",
     required: [true, "Sport type is required."],
