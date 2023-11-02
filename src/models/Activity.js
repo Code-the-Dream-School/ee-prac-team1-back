@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const ActivitySchema = new mongoose.Schema({
   sportType: {
     type: String,
+    default: "pickleball",
     required: [true, "Sport type is required."],
   },
   description: String,
@@ -33,15 +34,13 @@ const ActivitySchema = new mongoose.Schema({
       required: [true, "Zip Code is required."],
     },
   },
-  indoorOutdoor: {
+  venue: {
     type: String,
     enum: ["indoor", "outdoor", "online"],
   },
   players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   maxPlayers: { type: Number, default: 10 },
   minPlayers: { type: Number, default: 2 },
-  weather: String,
-  tempF: Number,
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   contactName: String,
   contactNum: String,
