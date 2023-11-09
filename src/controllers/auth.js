@@ -154,7 +154,7 @@ const deleteUserAccount = async (req, res) => {
     if (!userToDelete) {
       return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' });
     }
-    const activitiesToDelete = await Activity.find({ players: userId });
+    const activitiesToDelete = await Activity.find({ createdBy: userId, players: userId });
     for (const activity of activitiesToDelete) {
       await Activity.findOneAndDelete({ _id: activity._id });
     }
