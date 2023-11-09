@@ -10,7 +10,6 @@ const session = require("express-session");
 // importing auth middleware to protect our Activity routes
 const authenticateUser = require("./middleware/authentication");
 // ROUTERS
-const mainRouter = require("./routes/mainRouter.js");
 const authRouter = require("./routes/auth");
 const activitiesRouter = require("./routes/activities");
 
@@ -34,9 +33,11 @@ app.use(
 );
 
 // ROUTES
-app.use("/api/v1/", mainRouter);
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/activities", authenticateUser, activitiesRouter);
+app.use("/api/v1/activities", activitiesRouter);
+app.use("/api/v1/activities/my", authenticateUser, activitiesRouter);
+
+app.use("/api/v1/auth/users", authenticateUser, authRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);

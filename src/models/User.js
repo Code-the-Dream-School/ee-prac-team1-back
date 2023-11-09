@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema({
   },
   lastName: {
     type: String,
-    required: [true, "Last name is requird"],
+    required: [true, "Last name is required"],
   },
   email: {
     type: String,
@@ -32,7 +32,7 @@ const UserSchema = new mongoose.Schema({
     enum: ["Beginner", "Intermediate", "Advanced"],
   },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
-  dateOfBirth: Date,
+  dateOfBirth: Date, //YYYY-MM-DD
   address: {
     houseAptNum: String,
     street: String,
@@ -41,13 +41,27 @@ const UserSchema = new mongoose.Schema({
     zipCode: String,
   },
   profileImage: String,
-  phoneNumber: String,
+  phoneNumber: {
+    type: String,
+    unique: true,
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 
 UserSchema.pre("save", async function () {
   const salt = await bcrypt.genSalt(10); // hashing the password
   this.password = await bcrypt.hash(this.password, salt);
 });
+UserSchema.pre("remove", async function (next) {
+  const user = this;
+  await Activity.deleteMany({ createdBy: user._id });
+  next();
+});
+
+
 
 UserSchema.methods.createJWT = function () {
   return jwt.sign(

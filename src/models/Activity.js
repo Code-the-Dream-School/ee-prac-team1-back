@@ -8,8 +8,8 @@ const ActivitySchema = new mongoose.Schema({
   },
   description: String,
   date: {
-    type: Date,
-    required: [true, "Date of the activity is required."],
+    type: Date,  //YYYY/MM/DD
+    required: [true, "Date of the activity is required in form of YYYY/MM/DD."],
   },
   time: {
     type: String,
