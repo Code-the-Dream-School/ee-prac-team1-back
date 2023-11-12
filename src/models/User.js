@@ -25,7 +25,13 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "Password is required"],
-    minlength: 6,
+    minlength: 8,
+    validate: {
+      validator: function (password) {
+        return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(password);
+      },
+      message: 'Password must be at least 8 characters long, contain a lowercase letter, an uppercase letter, and a number or special character.',
+    },
   },
   experienceLevel: {
     type: String,
@@ -33,12 +39,23 @@ const UserSchema = new mongoose.Schema({
   },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
   dateOfBirth: Date, //YYYY-MM-DD
-  address: {
-    houseAptNum: String,
-    street: String,
-    city: String,
-    state: String,
-    zipCode: String,
+  livingAddress: {
+    address: {
+      type: String,
+      required: [true, "Please, enter street number and name"],
+    },
+    townOrCity: {
+      type: String,
+      required: [true, "Town/City is required."],
+    },
+    state: {
+      type: String,
+      required: [true, "State is required."],
+    },
+    zipCode: {
+      type: String,
+      required: [true, "Zip Code is required."],
+    },
   },
   profileImage: String,
   phoneNumber: {

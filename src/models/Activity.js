@@ -16,14 +16,13 @@ const ActivitySchema = new mongoose.Schema({
     required: [true, "Time of the activity is required."],
   },
   location: {
-    placeNum: String,
-    street: {
+    address: {
       type: String,
-      required: [true, "Street is required."],
+      required: [true, "Please, enter street number and name"],
     },
-    city: {
+    townOrCity: {
       type: String,
-      required: [true, "City is required."],
+      required: [true, "Town/City is required."],
     },
     state: {
       type: String,
@@ -41,9 +40,23 @@ const ActivitySchema = new mongoose.Schema({
   players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   maxPlayers: { type: Number, default: 10 },
   minPlayers: { type: Number, default: 2 },
+  experienceLevel: {
+    type: String,
+    enum: ["Beginner", "Intermediate", "Advanced"],
+  },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   contactName: String,
   contactNum: String,
+  contactemail: {
+    type: String,
+    required: [true, "Email is required"],
+    unique: true,
+    lowercase: true,
+    match: [
+      /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,
+      "Please provide a valid email address",
+    ],
+  },
   fees: {
     type: Number,
     default: 0,
