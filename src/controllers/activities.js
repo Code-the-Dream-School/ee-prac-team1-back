@@ -65,6 +65,7 @@ const createActivity = async (req, res) => {
         minPlayers,
         contactName,
         contactNum,
+        contactEmail,
         fees,
         notes,
       },
@@ -84,6 +85,7 @@ const createActivity = async (req, res) => {
       minPlayers === "" ||
       contactName === "" ||
       contactNum === "" ||
+      contactEmail === "" ||
       fees === "" ||
       notes === ""
     ) {
@@ -113,6 +115,7 @@ const editActivity = async (req, res) => {
         minPlayers,
         contactName,
         contactNum,
+        contactEmail,
         fees,
         notes,
       },
@@ -131,6 +134,7 @@ const editActivity = async (req, res) => {
       minPlayers === "" ||
       contactName === "" ||
       contactNum === "" ||
+      contactEmail === "" ||
       fees === "" ||
       notes === ""
     ) {

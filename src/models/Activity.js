@@ -47,7 +47,7 @@ const ActivitySchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   contactName: String,
   contactNum: String,
-  contactemail: {
+  contactEmail: {
     type: String,
     required: [true, "Email is required"],
     unique: true,

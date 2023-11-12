@@ -11,22 +11,12 @@ const register = async (req, res) => {
       lastName,
       email,
       password,
-      experienceLevel,
-      dateOfBirth,
-      address,
-      profileImage,
-      phoneNumber,
     } = req.body;
     if (
       firstName === "" ||
       lastName === "" ||
       email === "" ||
-      password === "" ||
-      experienceLevel === "" ||
-      dateOfBirth === "" ||
-      address === "" ||
-      profileImage === "" ||
-      phoneNumber === ""
+      password === ""
     ) {
       throw new BadRequestError("Fields cannot be empty");
     };

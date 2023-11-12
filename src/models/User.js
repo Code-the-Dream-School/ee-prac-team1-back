@@ -42,19 +42,15 @@ const UserSchema = new mongoose.Schema({
   livingAddress: {
     address: {
       type: String,
-      required: [true, "Please, enter street number and name"],
     },
     townOrCity: {
       type: String,
-      required: [true, "Town/City is required."],
     },
     state: {
       type: String,
-      required: [true, "State is required."],
     },
     zipCode: {
       type: String,
-      required: [true, "Zip Code is required."],
     },
   },
   profileImage: String,
