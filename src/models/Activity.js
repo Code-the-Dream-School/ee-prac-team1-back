@@ -6,7 +6,6 @@ const ActivitySchema = new mongoose.Schema({
     default: "pickleball",
     required: [true, "Sport type is required."],
   },
-  description: String,
   date: {
     type: Date,  //YYYY/MM/DD
     required: [true, "Date of the activity is required in form of YYYY/MM/DD."],
@@ -50,7 +49,6 @@ const ActivitySchema = new mongoose.Schema({
   contactEmail: {
     type: String,
     required: [true, "Email is required"],
-    unique: true,
     lowercase: true,
     match: [
       /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,

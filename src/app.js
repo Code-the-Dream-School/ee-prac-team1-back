@@ -11,7 +11,8 @@ const session = require("express-session");
 const authenticateUser = require("./middleware/authentication");
 // ROUTERS
 const authRouter = require("./routes/auth");
-const activitiesRouter = require("./routes/activities");
+const myActivitiesRouter = require("./routes/myActivities");
+const allActivitiesRouter = require("./routes/allActivities");
 
 // ERROR HANDLER
 const notFoundMiddleware = require("./middleware/not-found");
@@ -34,8 +35,8 @@ app.use(
 
 // ROUTES
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/activities", activitiesRouter);
-app.use("/api/v1/activities/my", authenticateUser, activitiesRouter);
+app.use("/api/v1/activities", allActivitiesRouter);
+app.use("/api/v1/myActivities", authenticateUser, myActivitiesRouter);
 
 app.use("/api/v1/auth/users", authenticateUser, authRouter);
 

@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  getAllActivities,
   getMyActivities,
   getActivity,
   createActivity,
@@ -10,14 +9,12 @@ const {
   deleteActivity,
 } = require("../controllers/activities");
 
-router.route("/")
-  .get(getAllActivities)
 
-router.route("/activities")
+router.route("/")
   .get(getMyActivities)
   .post(createActivity);
 
-router.route("/activities/:id")
+router.route("/:id")
   .get(getActivity)
   .delete(deleteActivity)
   .patch(editActivity);

@@ -55,7 +55,6 @@ const createActivity = async (req, res) => {
     const {
       body: {
         activityType,
-        description,
         date,
         time,
         location,
@@ -75,7 +74,6 @@ const createActivity = async (req, res) => {
 
     if (
       activityType === "" ||
-      description === "" ||
       date === "" ||
       time === "" ||
       location === "" ||
@@ -105,7 +103,6 @@ const editActivity = async (req, res) => {
     const {
       body: {
         activityType,
-        description,
         date,
         time,
         location,
@@ -124,7 +121,6 @@ const editActivity = async (req, res) => {
     } = req;
     if (
       activityType === "" ||
-      description === "" ||
       date === "" ||
       time === "" ||
       location === "" ||
