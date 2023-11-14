@@ -1,15 +1,19 @@
-const Activity = require("../models/Activity");
-const { StatusCodes } = require("http-status-codes");
-const { BadRequestError, NotFoundError } = require("../errors");
+const Activity = require('../models/Activity');
+const { StatusCodes } = require('http-status-codes');
+const { BadRequestError, NotFoundError } = require('../errors');
 
-// const getAllActivities = async (req, res) => {
-//   const activities = await Activity.find();
-//   res.status(StatusCodes.OK).json({ activities, count: activities.length });
-// };
+const getAllActivities = async (req, res) => {
+  try {
+    const activities = await Activity.find();
+    res.status(StatusCodes.OK).json({ activities, count: activities.length });
+  } catch (error) {
+    throw new BadRequestError('Error with getAllActivites');
+  }
+};
 
 const getActivity = async (req, res) => {
   const {
-    user: { userId },
+    //    user: { userId },
     params: { id: activityId },
   } = req;
   const activity = await Activity.findOne({
@@ -29,7 +33,7 @@ const createActivity = async (req, res) => {
     res.status(StatusCodes.CREATED).json({ activity });
   } catch (error) {
     console.error(error);
-    throw new BadRequestError("Error in createActivity");
+    throw new BadRequestError('Error in createActivity');
   }
 };
 
@@ -62,15 +66,15 @@ const editActivity = async (req, res) => {
   } = req;
 
   if (
-    sportType === "" ||
-    date === "" ||
-    time === "" ||
-    street === "" ||
-    city === "" ||
-    zipCode === "" ||
-    state === ""
+    sportType === '' ||
+    date === '' ||
+    time === '' ||
+    street === '' ||
+    city === '' ||
+    zipCode === '' ||
+    state === ''
   ) {
-    throw new BadRequestError("Fields cannot be empty");
+    throw new BadRequestError('Fields cannot be empty');
   }
   const activity = await Activity.findByIdAndUpdate(
     {
@@ -99,13 +103,51 @@ const deleteActivity = async (req, res) => {
   if (!activity) {
     throw new NotFoundError(`No activity with id ${activityId}`);
   }
-  res.status(StatusCodes.OK).json({ msg: "Activity was deleted" });
+  res.status(StatusCodes.OK).json({ msg: 'Activity was deleted' });
+};
+
+const addUserToActivity = async (req, res) => {
+  const { id: activityId } = req.params;
+  const userId = req.user.userId;
+
+  const activity = await Activity.findByIdAndUpdate(
+    activityId,
+    {
+      $push: { players: userId },
+    },
+    { new: true }
+  );
+  if (!activity) {
+    throw new NotFoundError(`No activity with id ${activityId}`);
+  } else {
+    res.status(StatusCodes.OK).json({ activity });
+  }
+};
+
+const removeUserFromActivity = async (req, res) => {
+  const { id: activityId } = req.params;
+  const userId = req.user.userId;
+
+  const activity = await Activity.findByIdAndUpdate(
+    activityId,
+    {
+      $pull: { players: userId },
+    },
+    { new: true }
+  );
+  if (!activity) {
+    throw new NotFoundError(`No activity with id ${activityId}`);
+  } else {
+    res.status(StatusCodes.OK).json({ activity });
+  }
 };
 
 module.exports = {
   createActivity,
   deleteActivity,
-  //   getAllActivities,
+  getAllActivities,
   editActivity,
   getActivity,
+  addUserToActivity,
+  removeUserFromActivity,
 };
