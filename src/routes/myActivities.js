@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
 const {
@@ -7,17 +7,14 @@ const {
   createActivity,
   editActivity,
   deleteActivity,
-} = require("../controllers/activities");
+} = require('../controllers/activities');
 
+router.route('/').get(getMyActivities).post(createActivity);
 
-router.route("/")
-  .get(getMyActivities)
-  .post(createActivity);
-
-router.route("/:id")
+router
+  .route('/:id')
   .get(getActivity)
   .delete(deleteActivity)
   .patch(editActivity);
-
 
 module.exports = router;
