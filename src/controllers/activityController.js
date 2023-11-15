@@ -1,6 +1,6 @@
-const Activity = require("../models/Activity");
-const { StatusCodes } = require("http-status-codes");
-const { BadRequestError, NotFoundError } = require("../errors");
+const Activity = require('../models/Activity');
+const { StatusCodes } = require('http-status-codes');
+const { BadRequestError, NotFoundError } = require('../errors');
 
 const getAllActivities = async (req, res) => {
   try {
@@ -11,7 +11,7 @@ const getAllActivities = async (req, res) => {
       res.status(StatusCodes.OK).json({ activities, count: activities.length });
     }
   } catch (error) {
-    console.error("Error in getAllActivities:", error);
+    console.error('Error in getAllActivities:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
@@ -25,7 +25,7 @@ const getMyActivities = async (req, res) => {
       res.status(StatusCodes.OK).json({ activities, count: activities.length });
     }
   } catch (error) {
-    console.error("Error in getMyActivities:", error);
+    console.error('Error in getMyActivities:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
@@ -45,7 +45,7 @@ const getActivity = async (req, res) => {
     }
     res.status(StatusCodes.OK).json({ activity });
   } catch (error) {
-    console.error("Error in getActivity:", error);
+    console.error('Error in getActivity:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
@@ -73,27 +73,27 @@ const createActivity = async (req, res) => {
     } = req;
 
     if (
-      activityType === "" ||
-      date === "" ||
-      time === "" ||
-      location === "" ||
-      venue === "" ||
-      players === "" ||
-      maxPlayers === "" ||
-      minPlayers === "" ||
-      contactName === "" ||
-      contactNum === "" ||
-      contactEmail === "" ||
-      fees === "" ||
-      notes === ""
+      activityType === '' ||
+      date === '' ||
+      time === '' ||
+      location === '' ||
+      venue === '' ||
+      players === '' ||
+      maxPlayers === '' ||
+      minPlayers === '' ||
+      contactName === '' ||
+      contactNum === '' ||
+      contactEmail === '' ||
+      fees === '' ||
+      notes === ''
     ) {
-      throw new BadRequestError("Fields cannot be empty");
+      throw new BadRequestError('Fields cannot be empty');
     }
     req.body.createdBy = req.user.userId;
     const activity = await Activity.create(req.body);
     res.status(StatusCodes.CREATED).json({ activity });
   } catch (error) {
-    console.error("Error in createActivity:", error);
+    console.error('Error in createActivity:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
@@ -120,21 +120,21 @@ const editActivity = async (req, res) => {
       params: { id: activityId },
     } = req;
     if (
-      activityType === "" ||
-      date === "" ||
-      time === "" ||
-      location === "" ||
-      venue === "" ||
-      players === "" ||
-      maxPlayers === "" ||
-      minPlayers === "" ||
-      contactName === "" ||
-      contactNum === "" ||
-      contactEmail === "" ||
-      fees === "" ||
-      notes === ""
+      activityType === '' ||
+      date === '' ||
+      time === '' ||
+      location === '' ||
+      venue === '' ||
+      players === '' ||
+      maxPlayers === '' ||
+      minPlayers === '' ||
+      contactName === '' ||
+      contactNum === '' ||
+      contactEmail === '' ||
+      fees === '' ||
+      notes === ''
     ) {
-      throw new BadRequestError("Fields cannot be empty");
+      throw new BadRequestError('Fields cannot be empty');
     }
     const activity = await Activity.findByIdAndUpdate(
       {
@@ -149,7 +149,7 @@ const editActivity = async (req, res) => {
     }
     res.status(StatusCodes.OK).json({ activity });
   } catch (error) {
-    console.error("Error in editActivity:", error);
+    console.error('Error in editActivity:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
@@ -168,10 +168,45 @@ const deleteActivity = async (req, res) => {
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
     }
-    res.status(StatusCodes.OK).json({ msg: "Activity was deleted" });
+    res.status(StatusCodes.OK).json({ msg: 'Activity was deleted' });
   } catch (error) {
-    console.error("Error in deleteActivity:", error);
+    console.error('Error in deleteActivity:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
+  }
+};
+const addUserToActivity = async (req, res) => {
+  const { id: activityId } = req.params;
+  const { userId } = req.user;
+
+  const activity = await Activity.findByIdAndUpdate(
+    activityId,
+    {
+      $push: { players: userId },
+    },
+    { new: true }
+  );
+  if (!activity) {
+    throw new NotFoundError(`No activity with id ${activityId}`);
+  } else {
+    res.status(StatusCodes.OK).json({ activity });
+  }
+};
+
+const removeUserFromActivity = async (req, res) => {
+  const { id: activityId } = req.params;
+  const { userId } = req.user;
+
+  const activity = await Activity.findByIdAndUpdate(
+    activityId,
+    {
+      $pull: { players: userId },
+    },
+    { new: true }
+  );
+  if (!activity) {
+    throw new NotFoundError(`No activity with id ${activityId}`);
+  } else {
+    res.status(StatusCodes.OK).json({ activity });
   }
 };
 
@@ -182,4 +217,6 @@ module.exports = {
   getMyActivities,
   editActivity,
   getActivity,
+  addUserToActivity,
+  removeUserFromActivity,
 };
