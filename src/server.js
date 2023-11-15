@@ -1,31 +1,22 @@
-const mongoose = require("mongoose");
-const { MongoClient } = require("mongodb");
+// const mongoose = require("mongoose");
+// const { MongoClient } = require("mongodb");
+const app = require("./app");
+// connectDB
+const connectDB = require('./db/connect');
 
 require("dotenv").config();
 
-const mongoURI = process.env.MONGO_URI;
-
-const { PORT = 8000 } = process.env;
-const app = require("./app");
-
-const listener = () =>
-  console.log(
-    `✓ Listening on Port ${PORT}!\n http://localhost:${PORT}/api/v1/`
-  );
-app.listen(PORT, listener);
+const port = process.env.PORT || 8000;
 
 const start = async () => {
-  mongoose
-    .connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    })
-    .then(() => {
-      console.log("✓ Connected to MongoDB");
-    })
-    .catch((err) => {
-      console.error("𐄂 Error connecting to MongoDB:", err);
-    });
+  try {
+    // connectDB
+    await connectDB(process.env.MONGO_URI);
+    console.log("✓ Connected to MongoDB");
+    app.listen(port, console.log(
+      `✓ Listening on Port ${port}! http://localhost:${port}/api/v1/`));
+  } catch (error) {
+    console.error("𐄂 Error connecting to MongoDB:", error);
+  };
 };
-
 start();

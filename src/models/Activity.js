@@ -6,24 +6,22 @@ const ActivitySchema = new mongoose.Schema({
     default: "pickleball",
     required: [true, "Sport type is required."],
   },
-  description: String,
   date: {
-    type: Date,
-    required: [true, "Date of the activity is required."],
+    type: Date,  //YYYY/MM/DD
+    required: [true, "Date of the activity is required in form of YYYY/MM/DD."],
   },
   time: {
     type: String,
     required: [true, "Time of the activity is required."],
   },
   location: {
-    placeNum: String,
-    street: {
+    address: {
       type: String,
-      required: [true, "Street is required."],
+      required: [true, "Please, enter street number and name"],
     },
-    city: {
+    townOrCity: {
       type: String,
-      required: [true, "City is required."],
+      required: [true, "Town/City is required."],
     },
     state: {
       type: String,
@@ -41,9 +39,22 @@ const ActivitySchema = new mongoose.Schema({
   players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   maxPlayers: { type: Number, default: 10 },
   minPlayers: { type: Number, default: 2 },
+  experienceLevel: {
+    type: String,
+    enum: ["Beginner", "Intermediate", "Advanced"],
+  },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   contactName: String,
   contactNum: String,
+  contactEmail: {
+    type: String,
+    required: [true, "Email is required"],
+    lowercase: true,
+    match: [
+      /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,
+      "Please provide a valid email address",
+    ],
+  },
   fees: {
     type: Number,
     default: 0,
