@@ -181,7 +181,7 @@ const deleteActivity = async (req, res) => {
 
 const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
-  const userId = req.user.userId;
+  const { userId } = req.user;
 
   const activity = await Activity.findByIdAndUpdate(
     activityId,
@@ -199,7 +199,7 @@ const addUserToActivity = async (req, res) => {
 
 const removeUserFromActivity = async (req, res) => {
   const { id: activityId } = req.params;
-  const userId = req.user.userId;
+  const { userId } = req.user;
 
   const activity = await Activity.findByIdAndUpdate(
     activityId,
