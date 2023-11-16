@@ -9,19 +9,25 @@ const {
   createActivity,
   editActivity,
   deleteActivity,
+  addUserToActivity,
+  removeUserFromActivity,
 } = require('../controllers/activityController');
 
 router.route('/')
   .get(getAllActivities);
+
+router.route('/addMe/:id')
+  .patch(authenticateUser, addUserToActivity);
+
+router.route('/removeMe/:id')
+  .patch(authenticateUser, removeUserFromActivity);
 
 router.route('/myActivities')
   .get(authenticateUser, getMyActivities)
   .post(authenticateUser, createActivity);
 
 router.route('/myActivities/:id')
-  .get(authenticateUser, getActivity)
+  .get(getActivity)
   .delete(authenticateUser, deleteActivity)
   .patch(authenticateUser, editActivity);
-
-
 module.exports = router;

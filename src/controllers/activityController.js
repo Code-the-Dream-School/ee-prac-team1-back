@@ -33,12 +33,10 @@ const getMyActivities = async (req, res) => {
 const getActivity = async (req, res) => {
   try {
     const {
-      user: { userId },
       params: { id: activityId },
     } = req;
     const activity = await Activity.findOne({
-      _id: activityId,
-      createdBy: userId,
+      _id: activityId
     });
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
