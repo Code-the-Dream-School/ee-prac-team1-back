@@ -6,9 +6,7 @@ const getAllActivities = async (req, res) => {
   try {
     const activities = await Activity.find();
     if (activities.length === 0) {
-      res
-        .status(StatusCodes.OK)
-        .json({ message: 'Users did not create any activity!' });
+      res.status(StatusCodes.OK).json({ message: 'Users did not create any activity!' });
     } else {
       res.status(StatusCodes.OK).json({ activities, count: activities.length });
     }
@@ -22,9 +20,7 @@ const getMyActivities = async (req, res) => {
   try {
     const activities = await Activity.find({ createdBy: req.user.userId });
     if (activities.length === 0) {
-      res
-        .status(StatusCodes.OK)
-        .json({ message: 'You did not create any activity!' });
+      res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
     } else {
       res.status(StatusCodes.OK).json({ activities, count: activities.length });
     }
@@ -37,12 +33,10 @@ const getMyActivities = async (req, res) => {
 const getActivity = async (req, res) => {
   try {
     const {
-      user: { userId },
       params: { id: activityId },
     } = req;
     const activity = await Activity.findOne({
-      _id: activityId,
-      createdBy: userId,
+      _id: activityId
     });
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
@@ -178,7 +172,6 @@ const deleteActivity = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
-
 const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;

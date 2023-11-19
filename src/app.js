@@ -7,18 +7,14 @@ const favicon = require('express-favicon');
 const logger = require('morgan');
 const session = require('express-session');
 
-// importing auth middleware to protect our Activity routes
-const authenticateUser = require('./middleware/authentication');
 // ROUTERS
-const authRouter = require('./routes/auth');
-const myActivitiesRouter = require('./routes/myActivities');
-const allActivitiesRouter = require('./routes/allActivities');
-
+const authRouter = require('./routes/authRoutes');
+const activityRouter = require('./routes/activityRoutes');
+const userRouter = require('./routes/userRoutes');
 // ERROR HANDLER
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
-// middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -35,10 +31,8 @@ app.use(
 
 // ROUTES
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/activities', allActivitiesRouter);
-app.use('/api/v1/myActivities', authenticateUser, myActivitiesRouter);
-
-app.use('/api/v1/auth/users', authenticateUser, authRouter);
+app.use('/api/v1/activities', activityRouter);
+app.use('/api/v1/users', userRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);

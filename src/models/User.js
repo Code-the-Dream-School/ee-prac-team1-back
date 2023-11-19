@@ -1,30 +1,30 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const UserSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: [true, "First name is required"],
+    required: [true, 'First name is required'],
     maxlength: 20,
   },
   lastName: {
     type: String,
-    required: [true, "Last name is required"],
+    required: [true, 'Last name is required'],
   },
   email: {
     type: String,
-    required: [true, "Email is required"],
+    required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
     match: [
       /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,
-      "Please provide a valid email address",
+      'Please provide a valid email address',
     ],
   },
   password: {
     type: String,
-    required: [true, "Password is required"],
+    required: [true, 'Password is required'],
     minlength: 8,
     validate: {
       validator: function (password) {
@@ -35,9 +35,9 @@ const UserSchema = new mongoose.Schema({
   },
   experienceLevel: {
     type: String,
-    enum: ["Beginner", "Intermediate", "Advanced"],
+    enum: ['Beginner', 'Intermediate', 'Advanced'],
   },
-  activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
+  activities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
   dateOfBirth: Date, //YYYY-MM-DD
   livingAddress: {
     address: {
@@ -60,22 +60,19 @@ const UserSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
   },
 });
 
-UserSchema.pre("save", async function () {
+UserSchema.pre('save', async function () {
   const salt = await bcrypt.genSalt(10); // hashing the password
   this.password = await bcrypt.hash(this.password, salt);
 });
-UserSchema.pre("remove", async function (next) {
+UserSchema.pre('remove', async function (next) {
   const user = this;
   await Activity.deleteMany({ createdBy: user._id });
   next();
 });
-
-
-
 UserSchema.methods.createJWT = function () {
   return jwt.sign(
     {
@@ -96,4 +93,4 @@ UserSchema.methods.comparePassword = async function (enteredPassword) {
   }
 };
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = mongoose.model('User', UserSchema);
