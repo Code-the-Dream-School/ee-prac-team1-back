@@ -28,9 +28,12 @@ const UserSchema = new mongoose.Schema({
     minlength: 8,
     validate: {
       validator: function (password) {
-        return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(password);
+        return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(
+          password
+        );
       },
-      message: 'Password must be at least 8 characters long, contain a lowercase letter, an uppercase letter, and a number or special character.',
+      message:
+        'Password must be at least 8 characters long, contain a lowercase letter, an uppercase letter, and a number or special character.',
     },
   },
   experienceLevel: {
@@ -56,7 +59,6 @@ const UserSchema = new mongoose.Schema({
   profileImage: String,
   phoneNumber: {
     type: String,
-    unique: true,
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
