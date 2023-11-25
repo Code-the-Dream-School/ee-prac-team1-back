@@ -1,4 +1,5 @@
 const Activity = require('../models/Activity');
+const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
 
@@ -22,9 +23,7 @@ const getMyActivities = async (req, res) => {
   try {
     const activities = await Activity.find({ createdBy: req.user.userId });
     if (activities.length === 0) {
-      res
-        .status(StatusCodes.OK)
-        .json({ message: 'You did not create any activity!' });
+      res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
     } else {
       res.status(StatusCodes.OK).json({ activities, count: activities.length });
     }
@@ -40,7 +39,7 @@ const getActivity = async (req, res) => {
       params: { id: activityId },
     } = req;
     const activity = await Activity.findOne({
-      _id: activityId,
+      _id: activityId
     });
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
@@ -121,6 +120,7 @@ const editActivity = async (req, res) => {
       user: { userId },
       params: { id: activityId },
     } = req;
+
     if (
       activityType === '' ||
       date === '' ||
@@ -138,6 +138,18 @@ const editActivity = async (req, res) => {
     ) {
       throw new BadRequestError('Fields cannot be empty');
     }
+
+    if (location) {
+      const coordinates = await getCoordinatesFromZipCode(
+        `${location.address}, ${location.townOrCity}, ${location.state}, ${location.zipCode}`
+      );
+
+      location.coordinates = {
+        type: 'Point',
+        coordinates: [coordinates.lng, coordinates.lat],
+      };
+    }
+
     const activity = await Activity.findByIdAndUpdate(
       {
         _id: activityId,
@@ -146,15 +158,18 @@ const editActivity = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
+
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
     }
+
     res.status(StatusCodes.OK).json({ activity });
   } catch (error) {
     console.error('Error in editActivity:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
+
 
 const deleteActivity = async (req, res) => {
   try {
@@ -180,11 +195,6 @@ const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;
 
-  const activityWithUser = await Activity.find({ players: { $eq: userId } });
-  console.log(activityWithUser);
-  if (activityWithUser?.length !== 0) {
-    throw new BadRequestError('There is a duplicate user in the activity');
-  }
   const activity = await Activity.findByIdAndUpdate(
     activityId,
     {
@@ -192,7 +202,6 @@ const addUserToActivity = async (req, res) => {
     },
     { new: true }
   );
-
   if (!activity) {
     throw new NotFoundError(`No activity with id ${activityId}`);
   } else {

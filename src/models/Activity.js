@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { getCoordinatesFromZipCode } = require('../utils/geocoding');
+
 
 const ActivitySchema = new mongoose.Schema({
   activityType: {
@@ -31,6 +33,17 @@ const ActivitySchema = new mongoose.Schema({
       type: String,
       required: [true, 'Zip Code is required.'],
     },
+    coordinates: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+      }
+    }
   },
   venue: {
     type: String,
@@ -60,6 +73,25 @@ const ActivitySchema = new mongoose.Schema({
     default: 0,
   },
   notes: String,
+});
+
+ActivitySchema.pre('save', async function (next) {
+  try {
+    // Calculate coordinates based on address information
+    const coordinates = await getCoordinatesFromZipCode(
+      `${this.location.address}, ${this.location.townOrCity}, ${this.location.state}, ${this.location.zipCode}`
+    );
+
+    // Set the calculated coordinates
+    this.location.coordinates = {
+      type: 'Point',
+      coordinates: [coordinates.lng, coordinates.lat],
+    };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = mongoose.model('Activity', ActivitySchema);
