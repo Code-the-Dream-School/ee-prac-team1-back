@@ -15,6 +15,7 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.env.save
 
 # other
 .DS_Store
