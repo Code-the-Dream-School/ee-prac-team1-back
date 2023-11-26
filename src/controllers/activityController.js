@@ -39,7 +39,7 @@ const getActivity = async (req, res) => {
       params: { id: activityId },
     } = req;
     const activity = await Activity.findOne({
-      _id: activityId
+      _id: activityId,
     });
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
@@ -170,7 +170,6 @@ const editActivity = async (req, res) => {
   }
 };
 
-
 const deleteActivity = async (req, res) => {
   try {
     const {
@@ -194,6 +193,12 @@ const deleteActivity = async (req, res) => {
 const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;
+
+  const activityWithUser = await Activity.find({ players: { $eq: userId } });
+  console.log(activityWithUser);
+  if (activityWithUser?.length !== 0) {
+    throw new BadRequestError('There is a duplicate user in the activity');
+  }
 
   const activity = await Activity.findByIdAndUpdate(
     activityId,
