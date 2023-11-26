@@ -60,6 +60,9 @@ const UserSchema = new mongoose.Schema({
   phoneNumber: {
     type: String,
   },
+  verificationCode: {
+    type: String,
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
