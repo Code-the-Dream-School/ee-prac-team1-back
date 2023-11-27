@@ -47,8 +47,7 @@ const editUserProfile = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.findByIdAndUpdate(
       {
-        _id: userId,
-        createdBy: userId,
+        _id: userId
       },
       {
         firstName,
