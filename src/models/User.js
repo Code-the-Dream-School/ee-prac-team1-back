@@ -62,11 +62,7 @@ const UserSchema = new mongoose.Schema({
   },
   verificationCode: {
     type: String,
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  },
+  }
 });
 
 UserSchema.pre('save', async function () {
