@@ -3,6 +3,8 @@ const Activity = require('../models/Activity');
 const { StatusCodes } = require('http-status-codes');
 const {
   BadRequestError,
+  UnauthenticatedError,
+  ConflictError,
   NotFoundError,
 } = require('../errors');
 const bcrypt = require('bcrypt');
@@ -25,58 +27,45 @@ const editUserProfile = async (req, res) => {
       password,
       experienceLevel,
       dateOfBirth,
-      residentialAddress,
+      address,
       profileImage,
       phoneNumber,
     } = req.body;
     const { userId } = req.user;
-
-    // Retrieve the current user's email from the database
-    const existingUser = await User.findById(userId);
-    const existingEmail = existingUser.email;
-
-    // Check if email is unchanged or empty
-    const shouldUpdateEmail = email && email !== existingEmail;
-
-    // Check if other required fields are empty
     if (
       firstName === '' ||
       lastName === '' ||
+      email === '' ||
       experienceLevel === '' ||
       dateOfBirth === '' ||
-      residentialAddress === '' ||
+      address === '' ||
       profileImage === '' ||
       phoneNumber === ''
     ) {
       throw new BadRequestError('Fields cannot be empty');
     }
-
-    // Hash the password if provided
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
-
-    // Construct the update object based on changed fields
-    const updateObject = {
-      firstName,
-      lastName,
-      experienceLevel,
-      dateOfBirth,
-      residentialAddress,
-      profileImage,
-      phoneNumber,
-      ...(shouldUpdateEmail && { email }),
-      ...(hashedPassword && { password: hashedPassword }),
-    };
-
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.findByIdAndUpdate(
-      { _id: userId, createdBy: userId },
-      updateObject,
+      {
+        _id: userId,
+        createdBy: userId,
+      },
+      {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        experienceLevel,
+        dateOfBirth,
+        address,
+        profileImage,
+        phoneNumber,
+      },
       { new: true, runValidators: true }
     );
-
     if (!user) {
       throw new NotFoundError(`No user with id ${userId}`);
     }
-
     const newToken = user.createJWT();
     res.status(200).json({
       message: 'User account is updated successfully',
@@ -87,7 +76,6 @@ const editUserProfile = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
-
 const deleteUserAccount = async (req, res) => {
   const userId = req.params.userId;
   try {

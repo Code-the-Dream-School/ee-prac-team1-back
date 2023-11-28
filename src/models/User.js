@@ -41,14 +41,12 @@ const UserSchema = new mongoose.Schema({
     enum: ['Beginner', 'Intermediate', 'Advanced'],
   },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
-  dateOfBirth: {
-    type: Date, //YYYY-MM-DD
-  },
-  residentialAddress: {
+  dateOfBirth: Date, //YYYY-MM-DD
+  livingAddress: {
     address: {
       type: String,
     },
-    city: {
+    townOrCity: {
       type: String,
     },
     state: {
@@ -58,11 +56,13 @@ const UserSchema = new mongoose.Schema({
       type: String,
     },
   },
-  profileImage: {
-    type: String,
-  },
+  profileImage: String,
   phoneNumber: {
     type: String,
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   },
 });
 

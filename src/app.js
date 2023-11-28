@@ -11,7 +11,6 @@ const session = require('express-session');
 const authRouter = require('./routes/authRoutes');
 const activityRouter = require('./routes/activityRoutes');
 const userRouter = require('./routes/userRoutes');
-const zipCodeRouter = require('./routes/zipCodeRoute');
 // ERROR HANDLER
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
@@ -34,7 +33,6 @@ app.use(
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/nearBy-activities', zipCodeRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);

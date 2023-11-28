@@ -13,7 +13,6 @@ const {
   removeUserFromActivity,
 } = require('../controllers/activityController');
 
-
 router.route('/')
   .get(getAllActivities);
 
@@ -31,5 +30,4 @@ router.route('/myActivities/:id')
   .get(getActivity)
   .delete(authenticateUser, deleteActivity)
   .patch(authenticateUser, editActivity);
-
 module.exports = router;
