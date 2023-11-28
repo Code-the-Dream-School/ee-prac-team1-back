@@ -52,12 +52,12 @@ const register = async (req, res) => {
     sendEmail(
       `${email}`,
       'Welcome to PlayerBuddy!',
-      '<h1>Welcome to PlayerBuddy!</h1><p>You have been registered successfully.</p>',
+      '<h1>Welcome to PlayerBuddy!</h1><p>You have been registered successfully.</p>'
     );
 
     res
       .status(StatusCodes.CREATED)
-      .json({ user: { firstName: user.firstName }, token });
+      .json({ user: { userId: user._id, firstName: user.firstName }, token });
   } catch (error) {
     console.error(error);
     throw new BadRequestError(error.message);
@@ -75,13 +75,13 @@ const login = async (req, res) => {
 
     if (!user) {
       throw new UnauthenticatedError(
-        'Login failed! Please enter the email you registered with.',
+        'Login failed! Please enter the email you registered with.'
       );
     }
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
       throw new UnauthenticatedError(
-        'Login failed! You entered Invalid Password!',
+        'Login failed! You entered Invalid Password!'
       );
     }
     const token = user.createJWT();
