@@ -21,9 +21,9 @@ const ActivitySchema = new mongoose.Schema({
       type: String,
       required: [true, 'Please, enter street number and name'],
     },
-    townOrCity: {
+    city: {
       type: String,
-      required: [true, 'Town/City is required.'],
+      required: [true, 'City is required.'],
     },
     state: {
       type: String,
@@ -54,7 +54,7 @@ const ActivitySchema = new mongoose.Schema({
   maxPlayers: {
     type: Number,
     required: [true, 'Please, enter the maximum number of players for activity.'],
-    default: 10
+    default: 10,
   },
   minPlayers: {
     type: Number,
@@ -96,7 +96,7 @@ const ActivitySchema = new mongoose.Schema({
 ActivitySchema.pre('save', async function (next) {
   try {
     const coordinates = await getCoordinatesFromZipCode(
-      `${this.location.address}, ${this.location.townOrCity}, ${this.location.state}, ${this.location.zipCode}`
+      `${this.location.address}, ${this.location.city}, ${this.location.state}, ${this.location.zipCode}`
     );
 
     this.location.coordinates = {

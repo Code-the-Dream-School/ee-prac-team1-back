@@ -44,11 +44,11 @@ const UserSchema = new mongoose.Schema({
   dateOfBirth: {
     type: Date, //YYYY-MM-DD
   },
-  livingAddress: {
+  residentialAddress: {
     address: {
       type: String,
     },
-    townOrCity: {
+    city: {
       type: String,
     },
     state: {
