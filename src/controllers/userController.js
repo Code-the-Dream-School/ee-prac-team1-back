@@ -24,10 +24,9 @@ const editUserProfile = async (req, res) => {
       firstName,
       lastName,
       email,
-      password,
       experienceLevel,
       dateOfBirth,
-      address,
+      livingAddress,
       profileImage,
       phoneNumber,
     } = req.body;
@@ -38,26 +37,23 @@ const editUserProfile = async (req, res) => {
       email === '' ||
       experienceLevel === '' ||
       dateOfBirth === '' ||
-      address === '' ||
-      profileImage === '' ||
+      livingAddress === '' ||
       phoneNumber === ''
     ) {
       throw new BadRequestError('Fields cannot be empty');
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.findByIdAndUpdate(
       {
         _id: userId,
-        createdBy: userId,
       },
       {
         firstName,
         lastName,
         email,
-        password: hashedPassword,
         experienceLevel,
         dateOfBirth,
-        address,
+        livingAddress,
         profileImage,
         phoneNumber,
       },
@@ -76,6 +72,7 @@ const editUserProfile = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
+
 const deleteUserAccount = async (req, res) => {
   const userId = req.params.userId;
   try {
