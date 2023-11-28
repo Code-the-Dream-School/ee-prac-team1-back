@@ -1,10 +1,7 @@
 const User = require('../models/User');
 const Activity = require('../models/Activity');
 const { StatusCodes } = require('http-status-codes');
-const {
-  BadRequestError,
-  NotFoundError,
-} = require('../errors');
+const { BadRequestError, NotFoundError } = require('../errors');
 const bcrypt = require('bcrypt');
 
 const getCurrentUser = async (req, res) => {
@@ -52,7 +49,9 @@ const editUserProfile = async (req, res) => {
     }
 
     // Hash the password if provided
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : undefined;
 
     // Construct the update object based on changed fields
     const updateObject = {
@@ -115,4 +114,26 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
-module.exports = { getCurrentUser, editUserProfile, deleteUserAccount };
+const updateUserPassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new CustomError.BadRequestError('Please provide both values');
+  }
+  const user = await User.findOne({ _id: req.user.userId });
+
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new CustomError.UnauthenticatedError('Invalid Credentials');
+  }
+  user.password = newPassword;
+
+  await user.save();
+  res.status(StatusCodes.OK).json({ msg: 'Success! Password Updated.' });
+};
+
+module.exports = {
+  getCurrentUser,
+  editUserProfile,
+  deleteUserAccount,
+  updateUserPassword,
+};

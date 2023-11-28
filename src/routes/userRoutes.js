@@ -6,10 +6,12 @@ const {
   getCurrentUser,
   editUserProfile,
   deleteUserAccount,
+  updateUserPassword,
 } = require('../controllers/userController');
 
 router.get('/current-user', authenticateUser, getCurrentUser);
 router.delete('/:userId', authenticateUser, deleteUserAccount);
-router.patch('/:userId', authenticateUser, editUserProfile);
+router.patch('/updateUser', authenticateUser, editUserProfile);
+router.patch('/updateUserPassword', authenticateUser, updateUserPassword);
 
 module.exports = router;
