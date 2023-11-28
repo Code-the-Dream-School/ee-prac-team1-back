@@ -3,8 +3,6 @@ const Activity = require('../models/Activity');
 const { StatusCodes } = require('http-status-codes');
 const {
   BadRequestError,
-  UnauthenticatedError,
-  ConflictError,
   NotFoundError,
 } = require('../errors');
 const bcrypt = require('bcrypt');

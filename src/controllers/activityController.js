@@ -60,11 +60,11 @@ const createActivity = async (req, res) => {
         time,
         location,
         venue,
-        players,
         maxPlayers,
         minPlayers,
+        experienceLevel,
         contactName,
-        contactNum,
+        contactPhoneNum,
         contactEmail,
         fees,
         notes,
@@ -79,11 +79,11 @@ const createActivity = async (req, res) => {
       time === '' ||
       location === '' ||
       venue === '' ||
-      players === '' ||
       maxPlayers === '' ||
       minPlayers === '' ||
+      experienceLevel === '' ||
       contactName === '' ||
-      contactNum === '' ||
+      contactPhoneNum === '' ||
       contactEmail === '' ||
       fees === '' ||
       notes === ''
@@ -108,11 +108,11 @@ const editActivity = async (req, res) => {
         time,
         location,
         venue,
-        players,
         maxPlayers,
         minPlayers,
+        experienceLevel,
         contactName,
-        contactNum,
+        contactPhoneNum,
         contactEmail,
         fees,
         notes,
@@ -127,11 +127,11 @@ const editActivity = async (req, res) => {
       time === '' ||
       location === '' ||
       venue === '' ||
-      players === '' ||
       maxPlayers === '' ||
       minPlayers === '' ||
+      experienceLevel === '' ||
       contactName === '' ||
-      contactNum === '' ||
+      contactPhoneNum === '' ||
       contactEmail === '' ||
       fees === '' ||
       notes === ''
