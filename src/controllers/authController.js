@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const { parse, isValid } = require('date-fns');
 const {
@@ -68,20 +69,21 @@ const register = async (req, res) => {
 const finishRegistration = async (req, res) => {
   try {
     const { profileImage, phoneNumber, dateOfBirth, residentialAddress, experienceLevel } = req.body;
-
-    const successMessages = [];
+    const userId = req.user.userId;
+    const updateMessages = [];
+    let parsedDateOfBirth;
 
     if (profileImage && typeof profileImage === 'string') {
-      successMessages.push('You added your profile image successfully');
+      updateMessages.push('You added your profile image successfully');
     }
 
     if (phoneNumber && typeof phoneNumber === 'string') {
-      successMessages.push('Your phone number is added successfully');
+      updateMessages.push('Your phone number is added successfully');
     }
     if (dateOfBirth) {
-      const parsedDateOfBirth = parse(dateOfBirth, 'mm/dd/yyyy', new Date());
+      parsedDateOfBirth = parse(dateOfBirth, 'mm/dd/yyyy', new Date());
       if (isValid(parsedDateOfBirth)) {
-        successMessages.push('Your date of birth is added successfully');
+        updateMessages.push('Your date of birth is added successfully');
       }
     }
     if (residentialAddress && typeof residentialAddress === 'object') {
@@ -91,23 +93,37 @@ const finishRegistration = async (req, res) => {
         residentialAddress.state && typeof residentialAddress.state === 'string' &&
         residentialAddress.zipCode && typeof residentialAddress.zipCode === 'number'
       ) {
-        successMessages.push('You successfully added your residential address');
+        updateMessages.push('You successfully added your residential address');
       }
     }
     if (
-      experienceLevel &&
-      typeof experienceLevel === 'string' &&
+      experienceLevel && typeof experienceLevel === 'string' &&
       ['Beginner', 'Intermediate', 'Advanced'].includes(experienceLevel)
     ) {
-      successMessages.push('Your experience level is added successfully');
+      updateMessages.push('Your experience level is added successfully');
     }
-    if (successMessages.length > 0) {
-      return res.status(200).json({ messages: successMessages });
+
+    if (updateMessages.length > 0) {
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: userId },
+        {
+          profileImage,
+          phoneNumber,
+          dateOfBirth: parsedDateOfBirth,
+          residentialAddress,
+          experienceLevel,
+        },
+        { new: true }
+      );
+      return res.status(200).json({ updatedUser: { _id: updatedUser._id }, messages: updateMessages });
     }
-    throw new BadRequestError('Invalid format or data not provided');
   } catch (error) {
     console.error('Finish Registration failed', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    if (error instanceof BadRequestError) {
+      return res.status(400).json({ error: 'Invalid format or data not provided' });
+    } else {
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 };
 
