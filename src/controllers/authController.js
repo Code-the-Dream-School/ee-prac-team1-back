@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
+const { parse, isValid } = require('date-fns');
 const {
   BadRequestError,
   UnauthenticatedError,
@@ -64,6 +65,52 @@ const register = async (req, res) => {
   }
 };
 
+const finishRegistration = async (req, res) => {
+  try {
+    const { profileImage, phoneNumber, dateOfBirth, residentialAddress, experienceLevel } = req.body;
+
+    const successMessages = [];
+
+    if (profileImage && typeof profileImage === 'string') {
+      successMessages.push('You added your profile image successfully');
+    }
+
+    if (phoneNumber && typeof phoneNumber === 'string') {
+      successMessages.push('Your phone number is added successfully');
+    }
+    if (dateOfBirth) {
+      const parsedDateOfBirth = parse(dateOfBirth, 'mm/dd/yyyy', new Date());
+      if (isValid(parsedDateOfBirth)) {
+        successMessages.push('Your date of birth is added successfully');
+      }
+    }
+    if (residentialAddress && typeof residentialAddress === 'object') {
+      if (
+        residentialAddress.address && typeof residentialAddress.address === 'string' &&
+        residentialAddress.city && typeof residentialAddress.city === 'string' &&
+        residentialAddress.state && typeof residentialAddress.state === 'string' &&
+        residentialAddress.zipCode && typeof residentialAddress.zipCode === 'number'
+      ) {
+        successMessages.push('You successfully added your residential address');
+      }
+    }
+    if (
+      experienceLevel &&
+      typeof experienceLevel === 'string' &&
+      ['Beginner', 'Intermediate', 'Advanced'].includes(experienceLevel)
+    ) {
+      successMessages.push('Your experience level is added successfully');
+    }
+    if (successMessages.length > 0) {
+      return res.status(200).json({ messages: successMessages });
+    }
+    throw new BadRequestError('Invalid format or data not provided');
+  } catch (error) {
+    console.error('Finish Registration failed', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -110,4 +157,4 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, login, logout };
+module.exports = { register, finishRegistration, login, logout };
