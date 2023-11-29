@@ -67,8 +67,7 @@ const editUserProfile = async (req, res) => {
       ...(hashedPassword && { password: hashedPassword }),
     };
 
-    const user = await User.findByIdAndUpdate(
-      { _id: userId, createdBy: userId },
+      { _id: userId },
       updateObject,
       { new: true, runValidators: true }
     );
