@@ -1,7 +1,11 @@
 const User = require('../models/User');
 const Activity = require('../models/Activity');
 const { StatusCodes } = require('http-status-codes');
-const { BadRequestError, NotFoundError } = require('../errors');
+const {
+  BadRequestError,
+  NotFoundError,
+  UnauthenticatedError,
+} = require('../errors');
 const bcrypt = require('bcrypt');
 
 const getCurrentUser = async (req, res) => {
@@ -105,4 +109,26 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
-module.exports = { getCurrentUser, editUserProfile, deleteUserAccount };
+const updateUserPassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new BadRequestError('Please provide both values');
+  }
+  const user = await User.findOne({ _id: req.user.userId });
+
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new UnauthenticatedError('Invalid Credentials');
+  }
+  user.password = newPassword;
+
+  await user.save();
+  res.status(StatusCodes.OK).json({ msg: 'Success! Password Updated.' });
+};
+
+module.exports = {
+  getCurrentUser,
+  editUserProfile,
+  deleteUserAccount,
+  updateUserPassword,
+};
