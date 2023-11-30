@@ -70,7 +70,6 @@ const createActivity = async (req, res) => {
         notes,
       },
       user: { userId },
-      params: { id: activityId },
     } = req;
 
     if (
@@ -84,14 +83,56 @@ const createActivity = async (req, res) => {
       experienceLevel === '' ||
       contactName === '' ||
       contactPhoneNum === '' ||
-      contactEmail === '' ||
-      fees === '' ||
-      notes === ''
+      contactEmail === ''
     ) {
-      throw new BadRequestError('Fields cannot be empty');
+      throw new BadRequestError('Required fields cannot be empty');
     }
-    req.body.createdBy = req.user.userId;
-    const activity = await Activity.create(req.body);
+
+    req.body.createdBy = userId;
+
+    const feesValue = fees !== undefined && fees !== null ? Number(fees) : 0;
+    const notesValue = notes !== undefined ? notes : '';
+
+    // Check if an activity with the same uniqueFields already exists
+    const existingActivity = await Activity.findOne({
+      'uniqueFields.activityType': activityType,
+      'uniqueFields.date': date,
+      'uniqueFields.location.address': location.address,
+      'uniqueFields.location.city': location.city,
+      'uniqueFields.location.state': location.state,
+      'uniqueFields.location.zipCode': location.zipCode,
+      'uniqueFields.contactName': contactName,
+      'uniqueFields.contactEmail': contactEmail,
+    });
+
+    if (existingActivity) {
+      const errorMessage = 'You have already created this activity.';
+      return res.status(StatusCodes.CONFLICT).json({ error: errorMessage });
+    }
+
+    // If no existing activity, proceed to create a new one
+    const activity = await Activity.create({
+      activityType,
+      date,
+      time,
+      location: {
+        address: location.address,
+        city: location.city,
+        state: location.state,
+        zipCode: location.zipCode,
+      },
+      venue,
+      maxPlayers,
+      minPlayers,
+      experienceLevel,
+      contactName,
+      contactPhoneNum,
+      contactEmail,
+      fees: feesValue,
+      notes: notesValue,
+      createdBy: userId,
+    });
+
     res.status(StatusCodes.CREATED).json({ activity });
   } catch (error) {
     console.error('Error in createActivity:', error);
@@ -114,8 +155,6 @@ const editActivity = async (req, res) => {
         contactName,
         contactPhoneNum,
         contactEmail,
-        fees,
-        notes,
       },
       user: { userId },
       params: { id: activityId },
@@ -132,9 +171,7 @@ const editActivity = async (req, res) => {
       experienceLevel === '' ||
       contactName === '' ||
       contactPhoneNum === '' ||
-      contactEmail === '' ||
-      fees === '' ||
-      notes === ''
+      contactEmail === ''
     ) {
       throw new BadRequestError('Fields cannot be empty');
     }
@@ -177,19 +214,25 @@ const deleteActivity = async (req, res) => {
       params: { id: activityId },
     } = req;
 
-    const activity = await Activity.findByIdAndRemove({
+    const activity = await Activity.findOneAndRemove({
       _id: activityId,
       createdBy: userId,
     });
     if (!activity) {
-      throw new NotFoundError(`No activity with id ${activityId}`);
+      throw new NotFoundError(`No activity with id ${activityId} created by the current user.`);
     }
     res.status(StatusCodes.OK).json({ msg: 'Activity was deleted' });
   } catch (error) {
     console.error('Error in deleteActivity:', error);
+    if (error instanceof NotFoundError) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'You do not have authorization to delete an activity you did not create.' });
+    }
+
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
+
+
 const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;
@@ -197,9 +240,8 @@ const addUserToActivity = async (req, res) => {
   const activityWithUser = await Activity.find({ players: { $eq: userId } });
   console.log(activityWithUser);
   if (activityWithUser?.length !== 0) {
-    throw new BadRequestError('There is a duplicate user in the activity');
+    throw new BadRequestError('You already signed up for this activity.');
   }
-
   const activity = await Activity.findByIdAndUpdate(
     activityId,
     {
@@ -215,22 +257,35 @@ const addUserToActivity = async (req, res) => {
 };
 
 const removeUserFromActivity = async (req, res) => {
-  const { id: activityId } = req.params;
-  const { userId } = req.user;
+  try {
+    const { id: activityId } = req.params;
+    const { userId } = req.user;
 
-  const activity = await Activity.findByIdAndUpdate(
-    activityId,
-    {
-      $pull: { players: userId },
-    },
-    { new: true }
-  );
-  if (!activity) {
-    throw new NotFoundError(`No activity with id ${activityId}`);
-  } else {
-    res.status(StatusCodes.OK).json({ activity });
+    const activity = await Activity.findById(activityId);
+
+    if (!activity) {
+      throw new NotFoundError(`No activity with id ${activityId}`);
+    }
+    if (!activity.players.includes(userId)) {
+      const successMessage = "You already removed yourself from activity participation.";
+      res.status(StatusCodes.OK).json({ message: successMessage });
+    } else {
+      const updatedActivity = await Activity.findByIdAndUpdate(
+        activityId,
+        {
+          $pull: { players: userId },
+        },
+        { new: true }
+      );
+      const successMessage = "You have successfully removed yourself from activity participation.";
+      res.status(StatusCodes.OK).json({ message: successMessage, activity: updatedActivity });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
+
 
 module.exports = {
   getAllActivities,

@@ -66,16 +66,13 @@ const editUserProfile = async (req, res) => {
       ...(shouldUpdateEmail && { email }),
       ...(hashedPassword && { password: hashedPassword }),
     };
-
-      { _id: userId },
-      updateObject,
+    { _id: userId }
+    updateObject,
       { new: true, runValidators: true }
-    );
 
     if (!user) {
       throw new NotFoundError(`No user with id ${userId}`);
     }
-
     const newToken = user.createJWT();
     res.status(200).json({
       message: 'User account is updated successfully',
