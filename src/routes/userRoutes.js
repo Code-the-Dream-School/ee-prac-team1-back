@@ -10,6 +10,6 @@ const {
 
 router.get('/current-user', authenticateUser, getCurrentUser);
 router.delete('/:userId', authenticateUser, deleteUserAccount);
-router.patch('/:userId', authenticateUser, editUserProfile);
+router.patch('/updateUser', authenticateUser, editUserProfile);
 
 module.exports = router;

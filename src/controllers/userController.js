@@ -1,10 +1,7 @@
 const User = require('../models/User');
 const Activity = require('../models/Activity');
 const { StatusCodes } = require('http-status-codes');
-const {
-  BadRequestError,
-  NotFoundError,
-} = require('../errors');
+const { BadRequestError, NotFoundError } = require('../errors');
 const bcrypt = require('bcrypt');
 
 const getCurrentUser = async (req, res) => {
@@ -22,7 +19,6 @@ const editUserProfile = async (req, res) => {
       firstName,
       lastName,
       email,
-      password,
       experienceLevel,
       dateOfBirth,
       residentialAddress,
@@ -45,14 +41,10 @@ const editUserProfile = async (req, res) => {
       experienceLevel === '' ||
       dateOfBirth === '' ||
       residentialAddress === '' ||
-      profileImage === '' ||
       phoneNumber === ''
     ) {
       throw new BadRequestError('Fields cannot be empty');
     }
-
-    // Hash the password if provided
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
     // Construct the update object based on changed fields
     const updateObject = {
@@ -64,13 +56,12 @@ const editUserProfile = async (req, res) => {
       profileImage,
       phoneNumber,
       ...(shouldUpdateEmail && { email }),
-      ...(hashedPassword && { password: hashedPassword }),
     };
 
-      { _id: userId },
-      updateObject,
-      { new: true, runValidators: true }
-    );
+    const user = await User.findByIdAndUpdate({ _id: userId }, updateObject, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!user) {
       throw new NotFoundError(`No user with id ${userId}`);
