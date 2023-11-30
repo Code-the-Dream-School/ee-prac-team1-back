@@ -1,12 +1,15 @@
-const User = require("../models/User");
-const Activity = require("../models/Activity");
-const { StatusCodes } = require("http-status-codes");
-const { BadRequestError, NotFoundError } = require("../errors");
-const bcrypt = require("bcrypt");
+const User = require('../models/User');
+const Activity = require('../models/Activity');
+const { StatusCodes } = require('http-status-codes');
+const {
+  BadRequestError,
+  NotFoundError,
+} = require('../errors');
+const bcrypt = require('bcrypt');
 
 const getCurrentUser = async (req, res) => {
   const { userId } = req.user;
-  const user = await User.findOne({ _id: userId }).select("-password");
+  const user = await User.findOne({ _id: userId }).select('-password');
   if (!user) {
     throw new NotFoundError(`No user with id ${userId}`);
   }
@@ -37,21 +40,19 @@ const editUserProfile = async (req, res) => {
 
     // Check if other required fields are empty
     if (
-      firstName === "" ||
-      lastName === "" ||
-      experienceLevel === "" ||
-      dateOfBirth === "" ||
-      residentialAddress === "" ||
-      profileImage === "" ||
-      phoneNumber === ""
+      firstName === '' ||
+      lastName === '' ||
+      experienceLevel === '' ||
+      dateOfBirth === '' ||
+      residentialAddress === '' ||
+      profileImage === '' ||
+      phoneNumber === ''
     ) {
-      throw new BadRequestError("Fields cannot be empty");
+      throw new BadRequestError('Fields cannot be empty');
     }
 
     // Hash the password if provided
-    const hashedPassword = password
-      ? await bcrypt.hash(password, 10)
-      : undefined;
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
     // Construct the update object based on changed fields
     const updateObject = {
@@ -66,10 +67,11 @@ const editUserProfile = async (req, res) => {
       ...(hashedPassword && { password: hashedPassword }),
     };
 
-    const user = await User.findByIdAndUpdate({ _id: userId }, updateObject, {
-      new: true,
-      runValidators: true,
-    });
+    const user = await User.findByIdAndUpdate(
+      { _id: userId },
+      updateObject,
+      { new: true, runValidators: true }
+    );
 
     if (!user) {
       throw new NotFoundError(`No user with id ${userId}`);
@@ -77,11 +79,11 @@ const editUserProfile = async (req, res) => {
 
     const newToken = user.createJWT();
     res.status(200).json({
-      message: "User account is updated successfully",
+      message: 'User account is updated successfully',
       token: newToken,
     });
   } catch (error) {
-    console.error("Error in editUserProfile:", error);
+    console.error('Error in editUserProfile:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
@@ -93,7 +95,7 @@ const deleteUserAccount = async (req, res) => {
     if (!userToDelete) {
       return res
         .status(StatusCodes.NOT_FOUND)
-        .json({ message: "User not found" });
+        .json({ message: 'User not found' });
     }
     const activitiesToDelete = await Activity.find({
       createdBy: userId,
@@ -106,9 +108,9 @@ const deleteUserAccount = async (req, res) => {
     if (!deletedUser) {
       throw new NotFoundError(`No user found with id ${userId}`);
     }
-    res.status(200).json({ message: "User account deleted successfully" });
+    res.status(200).json({ message: 'User account deleted successfully' });
   } catch (error) {
-    console.error("An error occurred while deleting the user profile:", error);
+    console.error('An error occurred while deleting the user profile:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
