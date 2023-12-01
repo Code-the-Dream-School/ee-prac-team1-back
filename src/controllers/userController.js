@@ -4,6 +4,7 @@ const { StatusCodes } = require('http-status-codes');
 const {
   BadRequestError,
   NotFoundError,
+  UnauthenticatedError,
 } = require('../errors');
 const bcrypt = require('bcrypt');
 
@@ -22,7 +23,6 @@ const editUserProfile = async (req, res) => {
       firstName,
       lastName,
       email,
-      password,
       experienceLevel,
       dateOfBirth,
       residentialAddress,
@@ -45,14 +45,10 @@ const editUserProfile = async (req, res) => {
       experienceLevel === '' ||
       dateOfBirth === '' ||
       residentialAddress === '' ||
-      profileImage === '' ||
       phoneNumber === ''
     ) {
       throw new BadRequestError('Fields cannot be empty');
     }
-
-    // Hash the password if provided
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
     // Construct the update object based on changed fields
     const updateObject = {
@@ -64,14 +60,12 @@ const editUserProfile = async (req, res) => {
       profileImage,
       phoneNumber,
       ...(shouldUpdateEmail && { email }),
-      ...(hashedPassword && { password: hashedPassword }),
     };
 
-    const user = await User.findByIdAndUpdate(
-      { _id: userId, createdBy: userId },
-      updateObject,
-      { new: true, runValidators: true }
-    );
+    const user = await User.findByIdAndUpdate({ _id: userId }, updateObject, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!user) {
       throw new NotFoundError(`No user with id ${userId}`);
@@ -115,4 +109,26 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
-module.exports = { getCurrentUser, editUserProfile, deleteUserAccount };
+const updateUserPassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new BadRequestError('Please provide both values');
+  }
+  const user = await User.findOne({ _id: req.user.userId });
+
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new UnauthenticatedError('Invalid Credentials');
+  }
+  user.password = newPassword;
+
+  await user.save();
+  res.status(StatusCodes.OK).json({ msg: 'Success! Password Updated.' });
+};
+
+module.exports = {
+  getCurrentUser,
+  editUserProfile,
+  deleteUserAccount,
+  updateUserPassword,
+};
