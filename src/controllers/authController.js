@@ -9,6 +9,8 @@ const {
 } = require('../errors');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
+const crypto = require('crypto');
+
 
 //Register Email
 const transporter = nodemailer.createTransport({
