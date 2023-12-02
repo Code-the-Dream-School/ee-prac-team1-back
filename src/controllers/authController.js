@@ -49,10 +49,10 @@ const register = async (req, res) => {
     if (existingUser) {
       throw new ConflictError('Email address is already in use');
     }
-    
+
     // Generate a verification code
     const verificationCode = crypto.randomBytes(4).toString("hex");
-    
+
     // Update the user with the verification code
     const user = await User.create({ ...req.body, verificationCode });
 
@@ -141,8 +141,8 @@ const finishRegistration = async (req, res) => {
 };
 const verifyCode = async (req, res) => {
   try {
-    const email=req.body.email;
-    const  verificationCode = req.params.verificationCode;
+    const email = req.body.email;
+    const verificationCode = req.params.verificationCode;
     const existingUser = await User.findOne({ email });
 
     if (!existingUser) {
@@ -208,4 +208,4 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, finishRegistration, login, logout };
+module.exports = { register, finishRegistration, login, logout, verifyCode };
