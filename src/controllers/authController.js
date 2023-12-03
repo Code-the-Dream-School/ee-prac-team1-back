@@ -11,7 +11,6 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 const crypto = require('crypto');
 
-
 //Register Email
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -53,7 +52,7 @@ const register = async (req, res) => {
     }
 
     // Generate a verification code
-    const verificationCode = crypto.randomBytes(4).toString("hex");
+    const verificationCode = crypto.randomBytes(4).toString('hex');
 
     // Update the user with the verification code
     const user = await User.create({ ...req.body, verificationCode });
@@ -69,13 +68,18 @@ const register = async (req, res) => {
     `;
 
     // Send the email
-    sendEmail(email, "Welcome to PlayerBuddy! Verify Your Email", emailBody);
+    sendEmail(email, 'Welcome to PlayerBuddy! Verify Your Email', emailBody);
 
     const token = user.createJWT();
 
-    res
-      .status(StatusCodes.CREATED)
-      .json({ user: { userId: user._id, firstName: user.firstName }, token });
+    res.status(StatusCodes.CREATED).json({
+      user: {
+        userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      token,
+    });
   } catch (error) {
     console.error(error);
     throw new BadRequestError(error.message);
@@ -83,7 +87,13 @@ const register = async (req, res) => {
 };
 const finishRegistration = async (req, res) => {
   try {
-    const { profileImage, phoneNumber, dateOfBirth, residentialAddress, experienceLevel } = req.body;
+    const {
+      profileImage,
+      phoneNumber,
+      dateOfBirth,
+      residentialAddress,
+      experienceLevel,
+    } = req.body;
     const userId = req.user.userId;
     const updateMessages = [];
     let parsedDateOfBirth;
@@ -103,16 +113,21 @@ const finishRegistration = async (req, res) => {
     }
     if (residentialAddress && typeof residentialAddress === 'object') {
       if (
-        residentialAddress.address && typeof residentialAddress.address === 'string' &&
-        residentialAddress.city && typeof residentialAddress.city === 'string' &&
-        residentialAddress.state && typeof residentialAddress.state === 'string' &&
-        residentialAddress.zipCode && typeof residentialAddress.zipCode === 'number'
+        residentialAddress.address &&
+        typeof residentialAddress.address === 'string' &&
+        residentialAddress.city &&
+        typeof residentialAddress.city === 'string' &&
+        residentialAddress.state &&
+        typeof residentialAddress.state === 'string' &&
+        residentialAddress.zipCode &&
+        typeof residentialAddress.zipCode === 'number'
       ) {
         updateMessages.push('You successfully added your residential address');
       }
     }
     if (
-      experienceLevel && typeof experienceLevel === 'string' &&
+      experienceLevel &&
+      typeof experienceLevel === 'string' &&
       ['Beginner', 'Intermediate', 'Advanced'].includes(experienceLevel)
     ) {
       updateMessages.push('Your experience level is added successfully');
@@ -130,12 +145,17 @@ const finishRegistration = async (req, res) => {
         },
         { new: true }
       );
-      return res.status(200).json({ updatedUser: { _id: updatedUser._id }, messages: updateMessages });
+      return res.status(200).json({
+        updatedUser: { _id: updatedUser._id },
+        messages: updateMessages,
+      });
     }
   } catch (error) {
     console.error('Finish Registration failed', error);
     if (error instanceof BadRequestError) {
-      return res.status(400).json({ error: 'Invalid format or data not provided' });
+      return res
+        .status(400)
+        .json({ error: 'Invalid format or data not provided' });
     } else {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -148,16 +168,16 @@ const verifyCode = async (req, res) => {
     const existingUser = await User.findOne({ email });
 
     if (!existingUser) {
-      throw new NotFoundError("User not found");
+      throw new NotFoundError('User not found');
     }
 
     // Check if the verification code matches the one stored in the database
     if (verificationCode !== existingUser.verificationCode) {
-      throw new BadRequestError("Invalid verification code");
+      throw new BadRequestError('Invalid verification code');
     }
 
     // At this point, the verification code is valid
-    res.status(StatusCodes.OK).json({ message: "Verification code is valid" });
+    res.status(StatusCodes.OK).json({ message: 'Verification code is valid' });
   } catch (error) {
     console.error(error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
@@ -187,7 +207,14 @@ const login = async (req, res) => {
     const token = user.createJWT();
     res
       .status(StatusCodes.OK)
-      .json({ user: { userId: user._id, firstName: user.firstName }, token });
+      .json({
+        user: {
+          userId: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        token,
+      });
   } catch (error) {
     console.error(error);
     res.status(StatusCodes.UNAUTHORIZED).json({ error: error.message });
