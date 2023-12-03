@@ -1,4 +1,5 @@
 const Activity = require('../models/Activity');
+const User = require('../models/User');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
@@ -23,7 +24,9 @@ const getMyActivities = async (req, res) => {
   try {
     const activities = await Activity.find({ createdBy: req.user.userId });
     if (activities.length === 0) {
-      res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'You did not create any activity!' });
     } else {
       res.status(StatusCodes.OK).json({ activities, count: activities.length });
     }
@@ -193,8 +196,15 @@ const deleteActivity = async (req, res) => {
 const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;
+  const user = await User.findOne({ _id: userId }).select('-password');
+  if (!user) {
+    throw new NotFoundError(`No user with id ${userId}`);
+  }
+  const { firstName, lastName, profileImage } = user;
 
-  const activityWithUser = await Activity.find({ players: { $eq: userId } });
+  const activityWithUser = await Activity.find({
+    players: { $elemMatch: { playerId: userId } },
+  });
   console.log(activityWithUser);
   if (activityWithUser?.length !== 0) {
     throw new BadRequestError('There is a duplicate user in the activity');
@@ -203,7 +213,9 @@ const addUserToActivity = async (req, res) => {
   const activity = await Activity.findByIdAndUpdate(
     activityId,
     {
-      $push: { players: userId },
+      $push: {
+        players: { playerId: userId, firstName, lastName, profileImage },
+      },
     },
     { new: true }
   );
@@ -221,7 +233,7 @@ const removeUserFromActivity = async (req, res) => {
   const activity = await Activity.findByIdAndUpdate(
     activityId,
     {
-      $pull: { players: userId },
+      $pull: { players: { playerId: userId } },
     },
     { new: true }
   );
