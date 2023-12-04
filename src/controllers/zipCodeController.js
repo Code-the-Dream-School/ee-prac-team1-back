@@ -17,16 +17,23 @@ const getActivitiesByZipCode = async (req, res) => {
 
             const radius = 25 / 3963.2;
 
-            console.log('Query for Entered Zip Code:', {
-                'location.coordinates': {
-                    $geoWithin: {
-                        $centerSphere: [
-                            [enteredCoordinates.lng, enteredCoordinates.lat],
-                            radius,
-                        ],
+            if (enteredCoordinates !== null) {
+                console.log('Query for Entered Zip Code:', {
+                    'location.coordinates': {
+                        $geoWithin: {
+                            $centerSphere: [
+                                [enteredCoordinates.lng, enteredCoordinates.lat],
+                                radius,
+                            ],
+                        },
                     },
-                },
-            });
+                });
+                console.log('Entered Coordinates:', [enteredCoordinates.lng, enteredCoordinates.lat]);
+                console.log('Radius:', radius);
+            } else {
+                console.error('Invalid or null coordinates.');
+            }
+
 
             activities = await Activity.find({
                 'location.coordinates': {
@@ -72,7 +79,13 @@ const getActivitiesByZipCode = async (req, res) => {
         }
     } catch (error) {
         console.error('Error in getActivitiesByZipCode:', error);
-        res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
+        if (error instanceof TypeError && error.message.includes('Cannot read properties of null')) {
+            // Handle the specific error related to null coordinates
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid or null coordinates. Please check the entered zip code.' });
+        } else {
+            // Handle other errors generically
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
+        }
     }
 };
 
