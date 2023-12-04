@@ -1,5 +1,6 @@
 const Activity = require('../models/Activity');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
+const { validateLocationWithUSPS } = require('../utils/locationValidation')
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
 
@@ -90,6 +91,11 @@ const createActivity = async (req, res) => {
     ) {
       throw new BadRequestError('Fields cannot be empty');
     }
+    const isValidLocation = await validateLocationWithUSPS(location);
+    if (!isValidLocation) {
+      throw new BadRequestError('Invalid location');
+    }
+
     req.body.createdBy = req.user.userId;
     const activity = await Activity.create(req.body);
     res.status(StatusCodes.CREATED).json({ activity });
@@ -137,6 +143,10 @@ const editActivity = async (req, res) => {
       notes === ''
     ) {
       throw new BadRequestError('Fields cannot be empty');
+    }
+    const isValidLocation = await validateLocationWithUSPS(location);
+    if (!isValidLocation) {
+      throw new BadRequestError('Invalid location');
     }
 
     if (location) {
