@@ -61,6 +61,9 @@ const editUserProfile = async (req, res) => {
       phoneNumber,
       ...(shouldUpdateEmail && { email }),
     };
+    { _id: userId }
+    updateObject,
+      { new: true, runValidators: true }
 
     const user = await User.findByIdAndUpdate({ _id: userId }, updateObject, {
       new: true,
