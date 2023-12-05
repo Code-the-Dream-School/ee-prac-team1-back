@@ -8,12 +8,12 @@ const {
 	login,
 	logout,
 	verifyCode,
-	forgotPassowrd,
+	forgotPassword,
 	resetPassword,
 } = require('../controllers/authController');
 
 router.post('/resetPassword/:resetCode', resetPassword);
-router.post('/forgotPassowrd', forgotPassowrd);
+router.post('/forgotPassword', forgotPassword);
 router.post('/verifyCode/:verificationCode', verifyCode);
 router.post('/register', register);
 router.post('/finishRegistration', authenticateUser, finishRegistration);

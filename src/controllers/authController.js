@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const forgotPassowrd = async (req, res) => {
+const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -75,6 +75,7 @@ const resetPassword = async (req, res) => {
     if (!newPassword) {
       throw new BadRequestError('Please provide newPassword');
     }
+
     // Check if the verification code matches the one stored in the database
     if (resetCode !== existingUser.verificationCode) {
       throw new BadRequestError('Invalid reset code');
@@ -312,6 +313,6 @@ module.exports = {
   login,
   logout,
   verifyCode,
-  forgotPassowrd,
+  forgotPassword,
   resetPassword,
 };
