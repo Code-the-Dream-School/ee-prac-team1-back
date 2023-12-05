@@ -1,6 +1,18 @@
 const mongoose = require('mongoose');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 
+const uniqueFieldsSchema = new mongoose.Schema({
+  activityType: String,
+  date: Date,
+  location: {
+    address: String,
+    city: String,
+    state: String,
+    zipCode: String,
+  },
+  contactName: String,
+  contactEmail: String,
+});
 
 const ActivitySchema = new mongoose.Schema({
   activityType: {
@@ -91,6 +103,7 @@ const ActivitySchema = new mongoose.Schema({
   notes: {
     type: String,
   },
+  uniqueFields: { type: uniqueFieldsSchema, required: false, unique: true, index: true },
 });
 
 ActivitySchema.pre('save', async function (next) {
@@ -104,6 +117,20 @@ ActivitySchema.pre('save', async function (next) {
       coordinates: [coordinates.lng, coordinates.lat],
     };
 
+    this.uniqueFields = {
+      activityType: this.activityType,
+      date: this.date,
+      location: {
+        address: this.location.address,
+        city: this.location.city,
+        state: this.location.state,
+        zipCode: this.location.zipCode,
+      },
+      contactName: this.contactName,
+      contactEmail: this.contactEmail,
+    };
+
+    // Continue with the save
     next();
   } catch (error) {
     next(error);

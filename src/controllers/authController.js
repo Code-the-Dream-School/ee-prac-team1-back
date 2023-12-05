@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const { parse, isValid } = require('date-fns');
@@ -9,7 +10,7 @@ const {
 } = require('../errors');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-const crypto = require('crypto');
+
 
 //Register Email
 const transporter = nodemailer.createTransport({

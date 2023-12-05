@@ -61,6 +61,9 @@ const editUserProfile = async (req, res) => {
       phoneNumber,
       ...(shouldUpdateEmail && { email }),
     };
+    { _id: userId }
+    updateObject,
+      { new: true, runValidators: true }
 
     const user = await User.findByIdAndUpdate({ _id: userId }, updateObject, {
       new: true,
@@ -70,7 +73,6 @@ const editUserProfile = async (req, res) => {
     if (!user) {
       throw new NotFoundError(`No user with id ${userId}`);
     }
-
     const newToken = user.createJWT();
     res.status(200).json({
       message: 'User account is updated successfully',
