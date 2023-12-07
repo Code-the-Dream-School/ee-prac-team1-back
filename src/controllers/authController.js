@@ -11,7 +11,6 @@ const {
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-
 //Register Email
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -25,34 +24,28 @@ const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
+    const origin = req.headers['origin'];
     if (!email) {
       throw new BadRequestError('Please enter email address');
     }
     const user = await User.findOne({ email });
-
     if (!user) {
       throw new UnauthenticatedError('No account with that email address');
     }
-
     // Generate a verification code
     const verificationCode = crypto.randomBytes(4).toString('hex');
-
     // Update the user with the verification code
     user.verificationCode = verificationCode;
     await user.save();
-
-    const verificationUrl = `http://localhost:8000/api/v1/auth/resetPassword/${verificationCode}?email=${email}`;
-
+    const verificationUrl = `${origin}/resetPassword/${verificationCode}/${email}`;
     // Modify the email template to include a button with the verification URL
     const emailBody = `
       <h1>Reset Password!</h1>
       <p>We've received your request to reset password. Click the button below to proceed:</p>
-      <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #FF0101; color: white; text-decoration: none;">Reset Passowrd</a>
+      <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #FF0101; color: white; text-decoration: none;">Reset Password</a>
     `;
-
     // Send the email
-    sendEmail(email, 'PlayerBuddy - Reset Password', emailBody);
-
+    sendEmail(email, 'Reset Password request recieved!', emailBody);
     res.status(StatusCodes.OK).json({
       msg: 'Reset password email sent!',
     });
@@ -66,25 +59,30 @@ const resetPassword = async (req, res) => {
   try {
     const newPassword = req.body.newPassword;
     const resetCode = req.params.resetCode;
-    const email = req.query.email;
+    const email = req.body.email;
     const existingUser = await User.findOne({ email });
-
     if (!existingUser) {
       throw new NotFoundError('User not found');
     }
-
     if (!newPassword) {
       throw new BadRequestError('Please provide newPassword');
     }
-
     // Check if the verification code matches the one stored in the database
     if (resetCode !== existingUser.verificationCode) {
       throw new BadRequestError('Invalid reset code');
     }
-
     // At this point, the verification code is valid
     existingUser.password = newPassword;
     await existingUser.save();
+
+    const emailBody = `
+      <h1>✓ Password has been changed successfully!</h1>
+      <h3>Have fun using PlayerBuddy!</h3>
+      <h3>Please contact our customer service if you have any questions: </h3> 
+      <a href='mailto:ctd.ee.team1@gmail.com'>ctd.ee.team1@gmail.com</a>
+      `;
+    // Send the email
+    sendEmail(email, 'Password Changed!', emailBody);
 
     res.status(StatusCodes.OK).json({ message: 'Reset password successful!' });
   } catch (error) {
