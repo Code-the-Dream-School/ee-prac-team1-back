@@ -222,19 +222,25 @@ const deleteActivity = async (req, res) => {
       createdBy: userId,
     });
     if (!activity) {
-      throw new NotFoundError(`No activity with id ${activityId} created by the current user.`);
+      throw new NotFoundError(
+        `No activity with id ${activityId} created by the current user.`
+      );
     }
     res.status(StatusCodes.OK).json({ msg: 'Activity was deleted' });
   } catch (error) {
     console.error('Error in deleteActivity:', error);
     if (error instanceof NotFoundError) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'You do not have authorization to delete an activity you did not create.' });
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({
+          error:
+            'You do not have authorization to delete an activity you did not create.',
+        });
     }
 
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
-
 
 const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
@@ -273,22 +279,25 @@ const removeUserFromActivity = async (req, res) => {
     const { id: activityId } = req.params;
     const { userId } = req.user;
 
-
-  const activity = await Activity.findByIdAndUpdate(
-    activityId,
-    {
-      $pull: { players: { playerId: userId } },
-    },
-    { new: true }
-  );
-  if (!activity) {
-    throw new NotFoundError(`No activity with id ${activityId}`);
-  } else {
-    res.status(StatusCodes.OK).json({ activity });
-
+    const activity = await Activity.findByIdAndUpdate(
+      activityId,
+      {
+        $pull: { players: { playerId: userId } },
+      },
+      { new: true }
+    );
+    if (!activity) {
+      throw new NotFoundError(`No activity with id ${activityId}`);
+    } else {
+      res.status(StatusCodes.OK).json({ activity });
+    }
+  } catch (error) {
+    console.error(error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
   }
 };
-
 
 module.exports = {
   getAllActivities,
