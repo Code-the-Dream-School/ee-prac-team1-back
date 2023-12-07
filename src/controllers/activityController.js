@@ -1,4 +1,5 @@
 const Activity = require('../models/Activity');
+const User = require('../models/User');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
@@ -23,7 +24,9 @@ const getMyActivities = async (req, res) => {
   try {
     const activities = await Activity.find({ createdBy: req.user.userId });
     if (activities.length === 0) {
-      res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'You did not create any activity!' });
     } else {
       res.status(StatusCodes.OK).json({ activities, count: activities.length });
     }
@@ -219,25 +222,38 @@ const deleteActivity = async (req, res) => {
       createdBy: userId,
     });
     if (!activity) {
-      throw new NotFoundError(`No activity with id ${activityId} created by the current user.`);
+      throw new NotFoundError(
+        `No activity with id ${activityId} created by the current user.`
+      );
     }
     res.status(StatusCodes.OK).json({ msg: 'Activity was deleted' });
   } catch (error) {
     console.error('Error in deleteActivity:', error);
     if (error instanceof NotFoundError) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'You do not have authorization to delete an activity you did not create.' });
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({
+          error:
+            'You do not have authorization to delete an activity you did not create.',
+        });
     }
 
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
 
-
 const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;
+  const user = await User.findOne({ _id: userId }).select('-password');
+  if (!user) {
+    throw new NotFoundError(`No user with id ${userId}`);
+  }
+  const { firstName, lastName, profileImage } = user;
 
-  const activityWithUser = await Activity.find({ players: { $eq: userId } });
+  const activityWithUser = await Activity.find({
+    players: { $elemMatch: { playerId: userId } },
+  });
   console.log(activityWithUser);
   if (activityWithUser?.length !== 0) {
     throw new BadRequestError('You already signed up for this activity.');
@@ -245,7 +261,9 @@ const addUserToActivity = async (req, res) => {
   const activity = await Activity.findByIdAndUpdate(
     activityId,
     {
-      $push: { players: userId },
+      $push: {
+        players: { playerId: userId, firstName, lastName, profileImage },
+      },
     },
     { new: true }
   );
@@ -261,31 +279,25 @@ const removeUserFromActivity = async (req, res) => {
     const { id: activityId } = req.params;
     const { userId } = req.user;
 
-    const activity = await Activity.findById(activityId);
-
+    const activity = await Activity.findByIdAndUpdate(
+      activityId,
+      {
+        $pull: { players: { playerId: userId } },
+      },
+      { new: true }
+    );
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
-    }
-    if (!activity.players.includes(userId)) {
-      const successMessage = "You already removed yourself from activity participation.";
-      res.status(StatusCodes.OK).json({ message: successMessage });
     } else {
-      const updatedActivity = await Activity.findByIdAndUpdate(
-        activityId,
-        {
-          $pull: { players: userId },
-        },
-        { new: true }
-      );
-      const successMessage = "You have successfully removed yourself from activity participation.";
-      res.status(StatusCodes.OK).json({ message: successMessage, activity: updatedActivity });
+      res.status(StatusCodes.OK).json({ activity });
     }
   } catch (error) {
     console.error(error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
   }
 };
-
 
 module.exports = {
   getAllActivities,

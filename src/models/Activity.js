@@ -21,7 +21,7 @@ const ActivitySchema = new mongoose.Schema({
     required: [true, 'Sport type is required.'],
   },
   date: {
-    type: Date,  //YYYY/MM/DD
+    type: Date, //YYYY/MM/DD
     required: [true, 'Date of the activity is required in form of YYYY/MM/DD.'],
   },
   time: {
@@ -54,7 +54,7 @@ const ActivitySchema = new mongoose.Schema({
       coordinates: {
         type: [Number],
         required: true,
-      }
+      },
     },
   },
   venue: {
@@ -62,16 +62,30 @@ const ActivitySchema = new mongoose.Schema({
     enum: ['indoor', 'outdoor', 'online'],
     required: [true, 'Please, enter the venue type.'],
   },
-  players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  players: [
+    {
+      playerId: { type: mongoose.Types.ObjectId, ref: 'User' },
+      firstName: { type: String },
+      lastName: { type: String },
+      profileImage: { type: String },
+      _id: false,
+    },
+  ],
   maxPlayers: {
     type: Number,
-    required: [true, 'Please, enter the maximum number of players for activity.'],
+    required: [
+      true,
+      'Please, enter the maximum number of players for activity.',
+    ],
     default: 10,
   },
   minPlayers: {
     type: Number,
-    required: [true, 'Please, enter the minimum number of players for activity.'],
-    default: 2
+    required: [
+      true,
+      'Please, enter the minimum number of players for activity.',
+    ],
+    default: 2,
   },
   experienceLevel: {
     type: String,
@@ -81,11 +95,17 @@ const ActivitySchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   contactName: {
     type: String,
-    required: [true, 'Please, enter the name of the person who can be reached for this activity.'],
+    required: [
+      true,
+      'Please, enter the name of the person who can be reached for this activity.',
+    ],
   },
   contactPhoneNum: {
     type: String,
-    required: [true, 'Please, enter the phone number of the person who can be reached for this activity.'],
+    required: [
+      true,
+      'Please, enter the phone number of the person who can be reached for this activity.',
+    ],
   },
   contactEmail: {
     type: String,
