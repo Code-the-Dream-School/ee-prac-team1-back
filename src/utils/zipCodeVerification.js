@@ -1,14 +1,13 @@
 const axios = require('axios');
 const xmlbuilder2 = require('xmlbuilder2');
-
-const USPS_USERID = '6F83CODET2789'; // Replace with your actual USPS USERID
+require('dotenv').config();
 
 const createUSPSRequestXML = (zipCode) => {
     const uppercaseZipCode = zipCode.toUpperCase();
 
     return xmlbuilder2
         .create({ version: '1.0' })
-        .ele('CityStateLookupRequest', { USERID: USPS_USERID })
+        .ele('CityStateLookupRequest', { USERID: process.env.USPS_USERID })
         .ele('ZipCode', { ID: '0' })
         .ele('Zip5')
         .txt(uppercaseZipCode)
