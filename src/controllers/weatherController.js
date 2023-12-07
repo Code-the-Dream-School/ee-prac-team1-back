@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const Activity = require('../models/Activity');
 const { StatusCodes } = require('http-status-codes');
-const { NotFoundError } = require('../errors/not-found'); // Adjust the path accordingly
-require('dotenv').config();
+const { NotFoundError } = require('../errors/not-found');
 const axios = require('axios');
+const { validateLocationWithUSPS } = require('../utils/zipCodeVerification'); // Adjust the path accordingly
+require('dotenv').config();
 
 function roundTimeToNearestHour(time) {
     const [hours, minutes] = time.split(':');
@@ -33,7 +34,8 @@ async function axiosData(url) {
 const getWeather = async (req, res) => {
     try {
         const activityId = new mongoose.Types.ObjectId(req.params.id);
-        const activity = await Activity.findById(activityId); // Use findById for querying by ID
+        const activity = await Activity.findById(activityId);
+
         if (!activity) {
             throw new NotFoundError(`No activity with id ${activityId}`);
         }
@@ -41,6 +43,17 @@ const getWeather = async (req, res) => {
         const lon = activity.location.coordinates.coordinates[0];
         const lat = activity.location.coordinates.coordinates[1];
         const zipCode = activity.location.zipCode;
+
+        // Validate the zip code using USPS API
+        const isValidZipCode = await validateLocationWithUSPS(zipCode);
+
+        if (!isValidZipCode) {
+            console.log(`Zip code (${zipCode}) is invalid.`);
+            res.status(StatusCodes.BAD_REQUEST).json({
+                error: `Zip code (${zipCode}) is invalid.`,
+            });
+            return;
+        }
         const time = activity.time;
         const roundedTime = roundTimeToNearestHour(time).toString();
 
@@ -49,9 +62,10 @@ const getWeather = async (req, res) => {
         const formattedDate = originalDate.toISOString().split('T')[0];
 
         // const url = `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${lat}&lon=${lon}&date=2023-12-07&appid=${process.env.WEATHER_API_KEY}&units=imperial`;
-        const url = `http://api.worldweatheronline.com/premium/v1/weather.ashx?key=${process.env.WEATHER_TRIAL_KEY}&q=${zipCode}&format=json&num_of_days=5&date=${formattedDate}&tp=1&alerts=yes
-`;
+        const url = `http://api.worldweatheronline.com/premium/v1/weather.ashx?key=${process.env.WEATHER_TRIAL_KEY}&q=${zipCode}&format=json&num_of_days=5&date=${formattedDate}&tp=1&alerts=yes`;
+
         const weatherData = await axiosData(url); // Await the promise to get the data
+
         const targetEntry = weatherData.data.weather[0].hourly.find(
             (entry) => entry.time === roundedTime,
         );
