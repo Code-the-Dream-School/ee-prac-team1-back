@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const { parse, isValid } = require('date-fns');
@@ -9,7 +10,6 @@ const {
 } = require('../errors');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-const crypto = require('crypto');
 
 //Register Email
 const transporter = nodemailer.createTransport({
@@ -19,6 +19,77 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_KEY,
   },
 });
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const origin = req.headers['origin'];
+    if (!email) {
+      throw new BadRequestError('Please enter email address');
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new UnauthenticatedError('No account with that email address');
+    }
+    // Generate a verification code
+    const verificationCode = crypto.randomBytes(4).toString('hex');
+    // Update the user with the verification code
+    user.verificationCode = verificationCode;
+    await user.save();
+    const verificationUrl = `${origin}/resetPassword/${verificationCode}/${email}`;
+    // Modify the email template to include a button with the verification URL
+    const emailBody = `
+      <h1>Reset Password!</h1>
+      <p>We've received your request to reset password. Click the button below to proceed:</p>
+      <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #FF0101; color: white; text-decoration: none;">Reset Password</a>
+    `;
+    // Send the email
+    sendEmail(email, 'Reset Password request recieved!', emailBody);
+    res.status(StatusCodes.OK).json({
+      msg: 'Reset password email sent!',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.UNAUTHORIZED).json({ error: error.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const newPassword = req.body.newPassword;
+    const resetCode = req.params.resetCode;
+    const email = req.body.email;
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      throw new NotFoundError('User not found');
+    }
+    if (!newPassword) {
+      throw new BadRequestError('Please provide newPassword');
+    }
+    // Check if the verification code matches the one stored in the database
+    if (resetCode !== existingUser.verificationCode) {
+      throw new BadRequestError('Invalid reset code');
+    }
+    // At this point, the verification code is valid
+    existingUser.password = newPassword;
+    await existingUser.save();
+
+    const emailBody = `
+      <h1>✓ Password has been changed successfully!</h1>
+      <h3>Have fun using PlayerBuddy!</h3>
+      <h3>Please contact our customer service if you have any questions: </h3> 
+      <a href='mailto:ctd.ee.team1@gmail.com'>ctd.ee.team1@gmail.com</a>
+      `;
+    // Send the email
+    sendEmail(email, 'Password Changed!', emailBody);
+
+    res.status(StatusCodes.OK).json({ message: 'Reset password successful!' });
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
+  }
+};
 
 const sendEmail = async (email, subject, html) => {
   const mailOptions = {
@@ -143,7 +214,7 @@ const finishRegistration = async (req, res) => {
           residentialAddress,
           experienceLevel,
         },
-        { new: true }
+        { new: true },
       );
       return res.status(200).json({
         updatedUser: { _id: updatedUser._id },
@@ -195,26 +266,24 @@ const login = async (req, res) => {
 
     if (!user) {
       throw new UnauthenticatedError(
-        'Login failed! Please enter the email you registered with.'
+        'Login failed! Please enter the email you registered with.',
       );
     }
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
       throw new UnauthenticatedError(
-        'Login failed! You entered Invalid Password!'
+        'Login failed! You entered Invalid Password!',
       );
     }
     const token = user.createJWT();
-    res
-      .status(StatusCodes.OK)
-      .json({
-        user: {
-          userId: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-        token,
-      });
+    res.status(StatusCodes.OK).json({
+      user: {
+        userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      token,
+    });
   } catch (error) {
     console.error(error);
     res.status(StatusCodes.UNAUTHORIZED).json({ error: error.message });
@@ -237,4 +306,12 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, finishRegistration, login, logout, verifyCode };
+module.exports = {
+  register,
+  finishRegistration,
+  login,
+  logout,
+  verifyCode,
+  forgotPassword,
+  resetPassword,
+};

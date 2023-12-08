@@ -1,6 +1,18 @@
 const mongoose = require('mongoose');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 
+const uniqueFieldsSchema = new mongoose.Schema({
+  activityType: String,
+  date: Date,
+  location: {
+    address: String,
+    city: String,
+    state: String,
+    zipCode: String,
+  },
+  contactName: String,
+  contactEmail: String,
+});
 
 const ActivitySchema = new mongoose.Schema({
   activityType: {
@@ -9,7 +21,7 @@ const ActivitySchema = new mongoose.Schema({
     required: [true, 'Sport type is required.'],
   },
   date: {
-    type: Date,  //YYYY/MM/DD
+    type: Date, //YYYY/MM/DD
     required: [true, 'Date of the activity is required in form of YYYY/MM/DD.'],
   },
   time: {
@@ -46,7 +58,7 @@ const ActivitySchema = new mongoose.Schema({
       coordinates: {
         type: [Number],
         required: true,
-      }
+      },
     },
   },
   venue: {
@@ -54,16 +66,30 @@ const ActivitySchema = new mongoose.Schema({
     enum: ['indoor', 'outdoor', 'online'],
     required: [true, 'Please, enter the venue type.'],
   },
-  players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  players: [
+    {
+      playerId: { type: mongoose.Types.ObjectId, ref: 'User' },
+      firstName: { type: String },
+      lastName: { type: String },
+      profileImage: { type: String },
+      _id: false,
+    },
+  ],
   maxPlayers: {
     type: Number,
-    required: [true, 'Please, enter the maximum number of players for activity.'],
+    required: [
+      true,
+      'Please, enter the maximum number of players for activity.',
+    ],
     default: 10,
   },
   minPlayers: {
     type: Number,
-    required: [true, 'Please, enter the minimum number of players for activity.'],
-    default: 2
+    required: [
+      true,
+      'Please, enter the minimum number of players for activity.',
+    ],
+    default: 2,
   },
   experienceLevel: {
     type: String,
@@ -73,11 +99,17 @@ const ActivitySchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   contactName: {
     type: String,
-    required: [true, 'Please, enter the name of the person who can be reached for this activity.'],
+    required: [
+      true,
+      'Please, enter the name of the person who can be reached for this activity.',
+    ],
   },
   contactPhoneNum: {
     type: String,
-    required: [true, 'Please, enter the phone number of the person who can be reached for this activity.'],
+    required: [
+      true,
+      'Please, enter the phone number of the person who can be reached for this activity.',
+    ],
   },
   contactEmail: {
     type: String,
@@ -95,6 +127,7 @@ const ActivitySchema = new mongoose.Schema({
   notes: {
     type: String,
   },
+  uniqueFields: { type: uniqueFieldsSchema, required: false, unique: true, index: true },
 });
 
 ActivitySchema.pre('save', async function (next) {
@@ -108,6 +141,20 @@ ActivitySchema.pre('save', async function (next) {
       coordinates: [coordinates.lng, coordinates.lat],
     };
 
+    this.uniqueFields = {
+      activityType: this.activityType,
+      date: this.date,
+      location: {
+        address: this.location.address,
+        city: this.location.city,
+        state: this.location.state,
+        zipCode: this.location.zipCode,
+      },
+      contactName: this.contactName,
+      contactEmail: this.contactEmail,
+    };
+
+    // Continue with the save
     next();
   } catch (error) {
     next(error);
