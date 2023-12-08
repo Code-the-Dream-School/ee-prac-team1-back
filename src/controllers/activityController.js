@@ -267,11 +267,15 @@ const addUserToActivity = async (req, res) => {
     },
     { new: true }
   );
+  const successMessage = `You successfully added yourself to the activity: ${activity.activityType}, ${activity.location.address}, ${activity.location.city}, ${activity.location.state}, ${activity.location.zipCode}, ${activity.date}.`;
   if (!activity) {
     throw new NotFoundError(`No activity with id ${activityId}`);
   } else {
-    res.status(StatusCodes.OK).json({ activity });
-  }
+    successMessage;
+  };
+  res.status(StatusCodes.OK).json({
+    message: successMessage,
+  });
 };
 
 const removeUserFromActivity = async (req, res) => {
@@ -284,6 +288,7 @@ const removeUserFromActivity = async (req, res) => {
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
     }
+
     const isUserInActivity = activity.players.some(player => player.playerId.toString() === userId.toString());
 
     if (!isUserInActivity) {
@@ -291,6 +296,7 @@ const removeUserFromActivity = async (req, res) => {
         error: 'You are not on the list of players for this activity.'
       });
     }
+
     const updatedActivity = await Activity.findByIdAndUpdate(
       activityId,
       {
@@ -299,12 +305,18 @@ const removeUserFromActivity = async (req, res) => {
       { new: true }
     );
 
-    res.status(StatusCodes.OK).json({ activity: updatedActivity });
+    const successMessage = `You successfully removed yourself from the activity: ${activity.activityType}, ${activity.location.address}, ${activity.location.city}, ${activity.location.state}, ${activity.location.zipCode}, ${activity.date}.`;
+
+    res.status(StatusCodes.OK).json({
+      message: successMessage,
+    });
+
   } catch (error) {
     console.error(error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
+
 
 
 module.exports = {
