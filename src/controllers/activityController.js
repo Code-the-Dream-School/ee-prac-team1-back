@@ -6,32 +6,41 @@ const { BadRequestError, NotFoundError } = require('../errors');
 const getAllActivities = async (req, res) => {
   try {
     const activities = await Activity.find();
+
     if (activities.length === 0) {
-      res
-        .status(StatusCodes.OK)
-        .json({ message: 'Users did not create any activity!' });
-    } else {
-      res.status(StatusCodes.OK).json({ activities, count: activities.length });
+      res.status(StatusCodes.OK).json({ message: 'Users did not create any activity!' });
+      return;
     }
+
+    activities.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const currentDate = new Date();
+
+    const activitiesToday = activities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      return (
+        activityDate.getFullYear() === currentDate.getFullYear() &&
+        activityDate.getMonth() === currentDate.getMonth() &&
+        activityDate.getDate() === currentDate.getDate()
+      );
+    });
+    const upcomingActivities = activities.filter(activity => new Date(activity.date) > currentDate);
+    const message =
+      `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'} today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+
+
+    res.status(StatusCodes.OK).json({
+      message,
+      activitiesToday,
+      upcomingActivities
+    });
   } catch (error) {
     console.error('Error in getAllActivities:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
 
-const getMyActivities = async (req, res) => {
-  try {
-    const activities = await Activity.find({ createdBy: req.user.userId });
-    if (activities.length === 0) {
-      res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
-    } else {
-      res.status(StatusCodes.OK).json({ activities, count: activities.length });
-    }
-  } catch (error) {
-    console.error('Error in getMyActivities:', error);
-    res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
-  }
-};
 
 const getActivity = async (req, res) => {
   try {
@@ -194,9 +203,12 @@ const addUserToActivity = async (req, res) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;
 
-  const activityWithUser = await Activity.find({ players: { $eq: userId } });
+  const activityWithUser = await Activity.findOne({
+    _id: activityId,
+    players: { $elemMatch: { $eq: userId } },
+  });
   console.log(activityWithUser);
-  if (activityWithUser?.length !== 0) {
+  if (activityWithUser) {
     throw new BadRequestError('There is a duplicate user in the activity');
   }
 
@@ -232,13 +244,148 @@ const removeUserFromActivity = async (req, res) => {
   }
 };
 
+const getCreatedActivities = async (req, res) => {
+  try {
+    const activities = await Activity.find({ createdBy: req.user.userId });
+
+    if (activities.length === 0) {
+      res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
+      return;
+    }
+
+    activities.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const currentDate = new Date();
+
+    const activitiesToday = activities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      return (
+        activityDate.getFullYear() === currentDate.getFullYear() &&
+        activityDate.getMonth() === currentDate.getMonth() &&
+        activityDate.getDate() === currentDate.getDate()
+      );
+    });
+    const upcomingActivities = activities.filter(activity => new Date(activity.date) > currentDate);
+
+    const message =
+      `You have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'created activity' : 'created activities'} today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+
+    res.status(StatusCodes.OK).json({
+      message,
+      activitiesToday,
+      upcomingActivities
+    });
+  } catch (error) {
+    console.error('Error in getCreatedActivities:', error);
+    res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
+  }
+};
+
+
+const getJoinedActivities = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const joinedActivities = await Activity.find({ players: userId });
+
+    if (joinedActivities.length === 0) {
+      res.status(StatusCodes.OK).json({ message: 'You have not joined any activities yet!' });
+      return;
+    }
+
+    joinedActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const currentDate = new Date();
+
+    const activitiesToday = joinedActivities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      return (
+        activityDate.getFullYear() === currentDate.getFullYear() &&
+        activityDate.getMonth() === currentDate.getMonth() &&
+        activityDate.getDate() === currentDate.getDate()
+      );
+    });
+    const upcomingActivities = joinedActivities.filter(activity => new Date(activity.date) > currentDate);
+
+    const message =
+      `You have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'joined activity' : 'joined activities'} today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+
+    res.status(StatusCodes.OK).json({
+      message,
+      activitiesToday,
+      upcomingActivities
+    });
+  } catch (error) {
+    console.error('Error in getJoinedActivities:', error);
+    res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
+  }
+};
+
+
+const getAllOtherActivities = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const activities = await Activity.find();
+
+    if (activities.length === 0) {
+      res.status(StatusCodes.OK).json({ message: 'No activities found!' });
+      return;
+    }
+
+    const allOtherActivities = await Activity.find({
+      $and: [
+        { createdBy: { $ne: userId } },
+        { players: { $ne: userId } },
+      ]
+    });
+
+    console.log('All Other activities:', allOtherActivities.length);
+
+    allOtherActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const currentDate = new Date();
+
+    const activitiesToday = allOtherActivities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      return (
+        activityDate.getFullYear() === currentDate.getFullYear() &&
+        activityDate.getMonth() === currentDate.getMonth() &&
+        activityDate.getDate() === currentDate.getDate()
+      );
+    });
+
+    const upcomingActivities = allOtherActivities.filter(activity => new Date(activity.date) > currentDate);
+
+    const message =
+      `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'} today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+
+    res.status(StatusCodes.OK).json({
+      message,
+      activitiesToday,
+      upcomingActivities
+    });
+  } catch (error) {
+    console.error('Error in getAllActivities:', error);
+    res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
+  }
+};
+
+
+
 module.exports = {
   getAllActivities,
-  createActivity,
   deleteActivity,
-  getMyActivities,
+  getActivity,
+  createActivity,
   editActivity,
   getActivity,
   addUserToActivity,
   removeUserFromActivity,
+  getCreatedActivities,
+  getJoinedActivities,
+  getAllOtherActivities
 };
