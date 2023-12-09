@@ -25,16 +25,25 @@ const getAllActivities = async (req, res) => {
         activityDate.getDate() === currentDate.getDate()
       );
     });
+
     const upcomingActivities = activities.filter(activity => new Date(activity.date) > currentDate);
+
+    activitiesToday.sort((a, b) => new Date(a.date) - new Date(b.date));
+    upcomingActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const allActivities = [
+      { "activitiesToday": activitiesToday },
+      { "upcomingActivities": upcomingActivities },
+    ];
+
     const message =
       `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'} today, ` +
       `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
 
-
     res.status(StatusCodes.OK).json({
       message,
-      activitiesToday,
-      upcomingActivities
+      allActivities,
+      count: allActivities.length,
     });
   } catch (error) {
     console.error('Error in getAllActivities:', error);
