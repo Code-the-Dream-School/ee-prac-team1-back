@@ -24,7 +24,9 @@
     "mongodb": "^6.2.0",
     "mongoose": "^7.6.3",
     "morgan": "^1.10.0",
-    "nodemailer": "^6.9.7"
+    "nodemailer": "^6.9.7",
+    "postcode-validator": "^3.8.20",
+    "xmlbuilder2": "^3.1.1"
   },
   "devDependencies": {
     "eslint": "^8.52.0",
