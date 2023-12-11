@@ -39,8 +39,8 @@ const getAllActivities = async (req, res) => {
     upcomingActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     activities = [
-      "activities Today:", ...activitiesToday,
-      "upcoming Activities:", ...upcomingActivities
+      "activities Today:", [...activitiesToday],
+      "upcoming Activities:", [...upcomingActivities]
     ];
 
     const message =
@@ -61,7 +61,6 @@ const getAllActivities = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
-
 
 const getActivity = async (req, res) => {
   try {
@@ -255,12 +254,10 @@ const deleteActivity = async (req, res) => {
   } catch (error) {
     console.error('Error in deleteActivity:', error);
     if (error instanceof NotFoundError) {
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({
-          error:
-            'You do not have authorization to delete an activity you did not create.',
-        });
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        error:
+          'You do not have authorization to delete an activity you did not create.',
+      });
     }
 
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
@@ -334,7 +331,9 @@ const getCreatedActivities = async (req, res) => {
     const activities = await Activity.find({ createdBy: userId });
 
     if (activities.length === 0) {
-      res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'You did not create any activity!' });
       return;
     }
 
@@ -342,7 +341,7 @@ const getCreatedActivities = async (req, res) => {
 
     const currentDate = new Date();
 
-    const activitiesToday = activities.filter(activity => {
+    const activitiesToday = activities.filter((activity) => {
       const activityDate = new Date(activity.date);
       return (
         activityDate.getFullYear() === currentDate.getFullYear() &&
@@ -350,23 +349,28 @@ const getCreatedActivities = async (req, res) => {
         activityDate.getDate() === currentDate.getDate()
       );
     });
-    const upcomingActivities = activities.filter(activity => new Date(activity.date) > currentDate);
+    const upcomingActivities = activities.filter(
+      (activity) => new Date(activity.date) > currentDate
+    );
 
     const message =
-      `You have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'created activity' : 'created activities'} today, ` +
-      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+      `You have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'created activity' : 'created activities'
+      } today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1
+        ? 'upcoming activity'
+        : 'upcoming activities'
+      }. `;
 
     res.status(StatusCodes.OK).json({
       message,
       activitiesToday,
-      upcomingActivities
+      upcomingActivities,
     });
   } catch (error) {
     console.error('Error in getCreatedActivities:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
-
 
 const getJoinedActivities = async (req, res) => {
   const userId = req.params.userId;
@@ -381,7 +385,9 @@ const getJoinedActivities = async (req, res) => {
     });
 
     if (joinedActivities.length === 0) {
-      res.status(StatusCodes.OK).json({ message: 'You have not joined any activities yet!' });
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'You have not joined any activities yet!' });
       return;
     }
 
@@ -389,7 +395,7 @@ const getJoinedActivities = async (req, res) => {
 
     const currentDate = new Date();
 
-    const activitiesToday = joinedActivities.filter(activity => {
+    const activitiesToday = joinedActivities.filter((activity) => {
       const activityDate = new Date(activity.date);
       return (
         activityDate.getFullYear() === currentDate.getFullYear() &&
@@ -397,23 +403,28 @@ const getJoinedActivities = async (req, res) => {
         activityDate.getDate() === currentDate.getDate()
       );
     });
-    const upcomingActivities = joinedActivities.filter(activity => new Date(activity.date) > currentDate);
+    const upcomingActivities = joinedActivities.filter(
+      (activity) => new Date(activity.date) > currentDate
+    );
 
     const message =
-      `You have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'joined activity' : 'joined activities'} today, ` +
-      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+      `You have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'joined activity' : 'joined activities'
+      } today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1
+        ? 'upcoming activity'
+        : 'upcoming activities'
+      }. `;
 
     res.status(StatusCodes.OK).json({
       message,
       activitiesToday,
-      upcomingActivities
+      upcomingActivities,
     });
   } catch (error) {
     console.error('Error in getJoinedActivities:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
   }
 };
-
 
 const getAllOtherActivities = async (req, res) => {
   const userId = req.params.userId;
@@ -435,7 +446,7 @@ const getAllOtherActivities = async (req, res) => {
 
     const currentDate = new Date();
 
-    const activitiesToday = allOtherActivities.filter(activity => {
+    const activitiesToday = allOtherActivities.filter((activity) => {
       const activityDate = new Date(activity.date);
       return (
         activityDate.getFullYear() === currentDate.getFullYear() &&
@@ -444,11 +455,17 @@ const getAllOtherActivities = async (req, res) => {
       );
     });
 
-    const upcomingActivities = allOtherActivities.filter(activity => new Date(activity.date) > currentDate);
+    const upcomingActivities = allOtherActivities.filter(
+      (activity) => new Date(activity.date) > currentDate
+    );
 
     const message =
-      `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'} today, ` +
-      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+      `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'
+      } today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1
+        ? 'upcoming activity'
+        : 'upcoming activities'
+      }. `;
 
     res.status(StatusCodes.OK).json({
       message,
@@ -473,5 +490,5 @@ module.exports = {
   removeUserFromActivity,
   getCreatedActivities,
   getJoinedActivities,
-  getAllOtherActivities
+  getAllOtherActivities,
 };
