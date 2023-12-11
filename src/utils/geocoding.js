@@ -1,7 +1,6 @@
 require('dotenv').config();
 const axios = require('axios');
-
-
+const { getIANATimeZone, IANAZone } = require('timezone-support');
 
 async function getCoordinatesFromZipCode(zipCode) {
     try {
@@ -47,4 +46,11 @@ function getHaversineDistance(coord1, coord2) {
     return distance;
 }
 
-module.exports = { getCoordinatesFromZipCode, getHaversineDistance };
+async function getTimeZoneFromCoordinates(lat, lng) {
+    const timeZone = getIANATimeZone({ lat, lng });
+
+    return timeZone;
+};
+
+
+module.exports = { getCoordinatesFromZipCode, getHaversineDistance, getTimeZoneFromCoordinates };

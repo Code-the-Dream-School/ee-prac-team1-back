@@ -3,13 +3,18 @@ const User = require('../models/User');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
+const { isToday, isAfter } = require('date-fns');
+const { DateTime } = require('luxon');
+
 
 const getAllActivities = async (req, res) => {
   try {
-    const activities = await Activity.find();
+    let activities = await Activity.find();
 
     if (activities.length === 0) {
-      res.status(StatusCodes.OK).json({ message: 'Users did not create any activity!' });
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Users did not create any activity!' });
       return;
     }
 
@@ -17,7 +22,7 @@ const getAllActivities = async (req, res) => {
 
     const currentDate = new Date();
 
-    const activitiesToday = activities.filter(activity => {
+    const activitiesToday = activities.filter((activity) => {
       const activityDate = new Date(activity.date);
       return (
         activityDate.getFullYear() === currentDate.getFullYear() &&
@@ -26,24 +31,30 @@ const getAllActivities = async (req, res) => {
       );
     });
 
-    const upcomingActivities = activities.filter(activity => new Date(activity.date) > currentDate);
+    const upcomingActivities = activities.filter(
+      (activity) => new Date(activity.date) > currentDate
+    );
 
     activitiesToday.sort((a, b) => new Date(a.date) - new Date(b.date));
     upcomingActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    const allActivities = [
-      { "activitiesToday": activitiesToday },
-      { "upcomingActivities": upcomingActivities },
+    activities = [
+      "activities Today:", ...activitiesToday,
+      "upcoming Activities:", ...upcomingActivities
     ];
 
     const message =
-      `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'} today, ` +
-      `and ${upcomingActivities.length} ${upcomingActivities.length === 1 ? 'upcoming activity' : 'upcoming activities'}. `;
+      `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'
+      } today, ` +
+      `and ${upcomingActivities.length} ${upcomingActivities.length === 1
+        ? 'upcoming activity'
+        : 'upcoming activities'
+      }. `;
 
     res.status(StatusCodes.OK).json({
       message,
-      allActivities,
-      count: allActivities.length,
+      activities,
+      count: activities.length,
     });
   } catch (error) {
     console.error('Error in getAllActivities:', error);
@@ -112,7 +123,6 @@ const createActivity = async (req, res) => {
     const feesValue = fees !== undefined && fees !== null ? Number(fees) : 0;
     const notesValue = notes !== undefined ? notes : '';
 
-    // Check if an activity with the same uniqueFields already exists
     const existingActivity = await Activity.findOne({
       'uniqueFields.activityType': activityType,
       'uniqueFields.date': date,
@@ -129,7 +139,6 @@ const createActivity = async (req, res) => {
       return res.status(StatusCodes.CONFLICT).json({ error: errorMessage });
     }
 
-    // If no existing activity, proceed to create a new one
     const activity = await Activity.create({
       activityType,
       date,
@@ -320,8 +329,9 @@ const removeUserFromActivity = async (req, res) => {
 };
 
 const getCreatedActivities = async (req, res) => {
+  const userId = req.params.userId;
   try {
-    const activities = await Activity.find({ createdBy: req.user.userId });
+    const activities = await Activity.find({ createdBy: userId });
 
     if (activities.length === 0) {
       res.status(StatusCodes.OK).json({ message: 'You did not create any activity!' });
@@ -362,7 +372,13 @@ const getJoinedActivities = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const joinedActivities = await Activity.find({ players: userId });
+    const joinedActivities = await Activity.find({
+      players: {
+        $elemMatch: {
+          playerId: userId,
+        },
+      },
+    });
 
     if (joinedActivities.length === 0) {
       res.status(StatusCodes.OK).json({ message: 'You have not joined any activities yet!' });
@@ -403,20 +419,16 @@ const getAllOtherActivities = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const activities = await Activity.find();
-
-    if (activities.length === 0) {
-      res.status(StatusCodes.OK).json({ message: 'No activities found!' });
-      return;
-    }
-
     const allOtherActivities = await Activity.find({
       $and: [
         { createdBy: { $ne: userId } },
-        { players: { $ne: userId } },
-      ]
+        { 'players.playerId': { $ne: userId } },
+      ],
     });
-
+    if (allOtherActivities.length === 0) {
+      res.status(StatusCodes.OK).json({ message: 'No activities found!' });
+      return;
+    };
     console.log('All Other activities:', allOtherActivities.length);
 
     allOtherActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -440,9 +452,10 @@ const getAllOtherActivities = async (req, res) => {
 
     res.status(StatusCodes.OK).json({
       message,
-      activitiesToday,
-      upcomingActivities
+      'activitiesToday': activitiesToday,
+      'upcomingActivities': upcomingActivities,
     });
+
   } catch (error) {
     console.error('Error in getAllActivities:', error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
