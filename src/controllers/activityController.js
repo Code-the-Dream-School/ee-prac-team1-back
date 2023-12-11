@@ -3,8 +3,6 @@ const User = require('../models/User');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
-const { isToday, isAfter } = require('date-fns');
-const { DateTime } = require('luxon');
 
 
 const getAllActivities = async (req, res) => {
