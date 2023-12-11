@@ -13,6 +13,7 @@ const authRouter = require('./routes/authRoutes');
 const activityRouter = require('./routes/activityRoutes');
 const userRouter = require('./routes/userRoutes');
 const zipCodeRouter = require('./routes/zipCodeRoute');
+const weatherRouter = require('./routes/weatherRoute');
 // ERROR HANDLER
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
@@ -34,7 +35,7 @@ app.use(
     secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: true,
-  })
+  }),
 );
 
 // ROUTES
@@ -42,6 +43,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/nearBy-activities', zipCodeRouter);
+app.use('/api/v1/weather', weatherRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
