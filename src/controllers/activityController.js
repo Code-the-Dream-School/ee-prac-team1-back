@@ -38,10 +38,7 @@ const getAllActivities = async (req, res) => {
     activitiesToday.sort((a, b) => new Date(a.date) - new Date(b.date));
     upcomingActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    activities = [
-      "activities Today:", [...activitiesToday],
-      "upcoming Activities:", [...upcomingActivities]
-    ];
+    activities = [...activitiesToday, ...upcomingActivities];
 
     const message =
       `Pickleball app have ${activitiesToday.length} ${activitiesToday.length === 1 ? 'activity' : 'activities'
