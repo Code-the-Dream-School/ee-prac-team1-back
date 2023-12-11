@@ -6,6 +6,7 @@ const cors = require('cors');
 const favicon = require('express-favicon');
 const logger = require('morgan');
 const session = require('express-session');
+const cloudinary = require('cloudinary');
 
 // ROUTERS
 const authRouter = require('./routes/authRoutes');
@@ -16,6 +17,12 @@ const weatherRouter = require('./routes/weatherRoute');
 // ERROR HANDLER
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
 
 app.use(cors());
 app.use(express.json());

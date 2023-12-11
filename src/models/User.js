@@ -61,12 +61,13 @@ const UserSchema = new mongoose.Schema({
   profileImage: {
     type: String,
   },
+  avatarPublicId: { type: String },
   verificationCode: {
     type: String,
   },
   phoneNumber: {
     type: String,
-  }
+  },
 });
 
 UserSchema.pre('save', async function () {
