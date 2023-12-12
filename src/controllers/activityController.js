@@ -282,25 +282,33 @@ const removeUserFromActivity = async (req, res) => {
     const { id: activityId } = req.params;
     const { userId } = req.user;
 
-    const activity = await Activity.findByIdAndUpdate(
+    const activity = await Activity.findById(activityId);
+
+    if (!activity) {
+      throw new NotFoundError(`No activity with id ${activityId}`);
+    }
+    const isUserInActivity = activity.players.some(player => player.playerId.toString() === userId.toString());
+
+    if (!isUserInActivity) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        error: 'You are not on the list of players for this activity.'
+      });
+    }
+    const updatedActivity = await Activity.findByIdAndUpdate(
       activityId,
       {
         $pull: { players: { playerId: userId } },
       },
       { new: true }
     );
-    if (!activity) {
-      throw new NotFoundError(`No activity with id ${activityId}`);
-    } else {
-      res.status(StatusCodes.OK).json({ activity });
-    }
+
+    res.status(StatusCodes.OK).json({ activity: updatedActivity });
   } catch (error) {
     console.error(error);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: error.message });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
+
 
 module.exports = {
   getAllActivities,

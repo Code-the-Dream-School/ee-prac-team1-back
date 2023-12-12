@@ -176,12 +176,14 @@ const finishRegistration = async (req, res) => {
     if (phoneNumber && typeof phoneNumber === 'string') {
       updateMessages.push('Your phone number is added successfully');
     }
+
     if (dateOfBirth) {
       parsedDateOfBirth = parse(dateOfBirth, 'mm/dd/yyyy', new Date());
       if (isValid(parsedDateOfBirth)) {
         updateMessages.push('Your date of birth is added successfully');
       }
     }
+
     if (residentialAddress && typeof residentialAddress === 'object') {
       if (
         residentialAddress.address &&
@@ -196,6 +198,7 @@ const finishRegistration = async (req, res) => {
         updateMessages.push('You successfully added your residential address');
       }
     }
+
     if (
       experienceLevel &&
       typeof experienceLevel === 'string' &&
@@ -220,18 +223,19 @@ const finishRegistration = async (req, res) => {
         updatedUser: { _id: updatedUser._id },
         messages: updateMessages,
       });
+    } else {
+      return res.status(200).json({ message: 'No values provided, no updates were made.' });
     }
   } catch (error) {
     console.error('Finish Registration failed', error);
     if (error instanceof BadRequestError) {
-      return res
-        .status(400)
-        .json({ error: 'Invalid format or data not provided' });
+      return res.status(400).json({ error: 'Invalid format of entered values.' });
     } else {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 };
+
 const verifyCode = async (req, res) => {
   try {
     const email = req.body.email;
