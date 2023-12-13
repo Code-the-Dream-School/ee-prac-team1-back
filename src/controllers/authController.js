@@ -3,11 +3,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const { parse, isValid } = require('date-fns');
-const {
-  BadRequestError,
-  UnauthenticatedError,
-  ConflictError,
-} = require('../errors');
+const { BadRequestError, UnauthenticatedError, ConflictError } = require('../errors');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
@@ -109,12 +105,7 @@ const sendEmail = async (email, subject, html) => {
 const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
-    if (
-      firstName === '' ||
-      lastName === '' ||
-      email === '' ||
-      password === ''
-    ) {
+    if (firstName === '' || lastName === '' || email === '' || password === '') {
       throw new BadRequestError('Fields cannot be empty');
     }
     const existingUser = await User.findOne({ email });
@@ -128,8 +119,10 @@ const register = async (req, res) => {
     // Update the user with the verification code
     const user = await User.create({ ...req.body, verificationCode });
 
+    const origin = req.headers['origin'];
+
     // Create a verification URL with the code
-    const verificationUrl = `http://localhost:8000/api/v1/auth/verifyCode/${verificationCode}`;
+    const verificationUrl = `${origin}/verifyCode/${verificationCode}/${email}`;
 
     // Modify the email template to include a button with the verification URL
     const emailBody = `
@@ -158,13 +151,7 @@ const register = async (req, res) => {
 };
 const finishRegistration = async (req, res) => {
   try {
-    const {
-      profileImage,
-      phoneNumber,
-      dateOfBirth,
-      residentialAddress,
-      experienceLevel,
-    } = req.body;
+    const { profileImage, phoneNumber, dateOfBirth, residentialAddress, experienceLevel } = req.body;
     const userId = req.user.userId;
     const updateMessages = [];
     let parsedDateOfBirth;
@@ -224,9 +211,7 @@ const finishRegistration = async (req, res) => {
   } catch (error) {
     console.error('Finish Registration failed', error);
     if (error instanceof BadRequestError) {
-      return res
-        .status(400)
-        .json({ error: 'Invalid format or data not provided' });
+      return res.status(400).json({ error: 'Invalid format or data not provided' });
     } else {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -247,8 +232,22 @@ const verifyCode = async (req, res) => {
       throw new BadRequestError('Invalid verification code');
     }
 
-    // At this point, the verification code is valid
-    res.status(StatusCodes.OK).json({ message: 'Verification code is valid' });
+    // Set "verificationCode" to an empty string and "isVerified" to true
+    existingUser.verificationCode = '';
+    existingUser.isVerified = true;
+
+    // Save the updated user document
+    await existingUser.save();
+
+    const emailBody = `
+      <h1>✓ Your email address has been verified successfully!</h1>
+      <h3>Have fun using PlayerBuddy!</h3>
+      `;
+    // Send the email
+    sendEmail(email, 'Account verified!', emailBody);
+
+    // At this point, the verification code is valid, and the user's document is updated
+    res.status(StatusCodes.OK).json({ message: `${existingUser.firstName}, Thanks for verifying your email address` });
   } catch (error) {
     console.error(error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
@@ -265,15 +264,11 @@ const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      throw new UnauthenticatedError(
-        'Login failed! Please enter the email you registered with.',
-      );
+      throw new UnauthenticatedError('Login failed! Please enter the email you registered with.');
     }
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
-      throw new UnauthenticatedError(
-        'Login failed! You entered Invalid Password!',
-      );
+      throw new UnauthenticatedError('Login failed! You entered Invalid Password!');
     }
     const token = user.createJWT();
     res.status(StatusCodes.OK).json({

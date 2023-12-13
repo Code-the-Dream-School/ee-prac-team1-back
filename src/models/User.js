@@ -17,10 +17,7 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
-    match: [
-      /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,
-      'Please provide a valid email address',
-    ],
+    match: [/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/, 'Please provide a valid email address'],
   },
   password: {
     type: String,
@@ -28,9 +25,7 @@ const UserSchema = new mongoose.Schema({
     minlength: 8,
     validate: {
       validator: function (password) {
-        return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(
-          password
-        );
+        return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(password);
       },
       message:
         'Password must be at least 8 characters long, contain a lowercase letter, an uppercase letter, and a number or special character.',
@@ -61,9 +56,15 @@ const UserSchema = new mongoose.Schema({
   profileImage: {
     type: String,
   },
-  avatarPublicId: { type: String },
+  avatarPublicId: {
+    type: String,
+  },
   verificationCode: {
     type: String,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
   },
   phoneNumber: {
     type: String,
@@ -86,7 +87,7 @@ UserSchema.methods.createJWT = function () {
       name: this.name,
     },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_LIFETIME }
+    { expiresIn: process.env.JWT_LIFETIME },
   );
 };
 
