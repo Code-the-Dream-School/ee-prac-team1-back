@@ -224,7 +224,7 @@ const verifyCode = async (req, res) => {
     const existingUser = await User.findOne({ email });
 
     if (!existingUser) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError('User was not found');
     }
 
     // Check if the verification code matches the one stored in the database
