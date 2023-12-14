@@ -45,6 +45,10 @@ const ActivitySchema = new mongoose.Schema({
       type: String,
       required: [true, 'Zip Code is required.'],
     },
+    distance: {
+      type: [Number],
+      required: false,
+    },
     coordinates: {
       type: {
         type: String,

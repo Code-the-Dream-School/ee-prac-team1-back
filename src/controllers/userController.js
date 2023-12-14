@@ -22,9 +22,6 @@ const getCurrentUser = async (req, res) => {
 const editUserProfile = async (req, res) => {
   try {
     const {
-      firstName,
-      lastName,
-      email,
       experienceLevel,
       dateOfBirth,
       residentialAddress,
@@ -33,35 +30,12 @@ const editUserProfile = async (req, res) => {
     } = req.body;
     const { userId } = req.user;
 
-    // Retrieve the current user's email from the database
-    const existingUser = await User.findById(userId);
-    const existingEmail = existingUser.email;
-
-    // Check if email is unchanged or empty
-    const shouldUpdateEmail = email && email !== existingEmail;
-
-    // Check if other required fields are empty
-    if (
-      firstName === '' ||
-      lastName === '' ||
-      experienceLevel === '' ||
-      dateOfBirth === '' ||
-      residentialAddress === '' ||
-      phoneNumber === ''
-    ) {
-      throw new BadRequestError('Fields cannot be empty');
-    }
-
-    // Construct the update object based on changed fields
     const updateObject = {
-      firstName,
-      lastName,
       experienceLevel,
       dateOfBirth,
       residentialAddress,
       profileImage,
       phoneNumber,
-      ...(shouldUpdateEmail && { email }),
     };
 
     if (req.file) {
