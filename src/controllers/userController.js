@@ -7,6 +7,8 @@ const {
   UnauthenticatedError,
 } = require('../errors');
 const bcrypt = require('bcrypt');
+const cloudinary = require('cloudinary');
+const { formatImage } = require('../middleware/multer.js');
 
 const getCurrentUser = async (req, res) => {
   const { userId } = req.user;
@@ -35,14 +37,27 @@ const editUserProfile = async (req, res) => {
       profileImage,
       phoneNumber,
     };
-    { _id: userId }
-    updateObject,
-      { new: true, runValidators: true }
+
+    if (req.file) {
+      const file = formatImage(req.file);
+      const response = await cloudinary.v2.uploader.upload(file);
+      updateObject.profileImage = response.secure_url;
+      updateObject.avatarPublicId = response.public_id;
+    }
+
+    {
+      _id: userId;
+    }
+    updateObject, { new: true, runValidators: true };
 
     const user = await User.findByIdAndUpdate({ _id: userId }, updateObject, {
       new: true,
       runValidators: true,
     });
+
+    // if (req.file && updateObject.avatarPublicId) {
+    //   await cloudinary.v2.uploader.destroy(updateObject.avatarPublicId);
+    // }
 
     if (!user) {
       throw new NotFoundError(`No user with id ${userId}`);

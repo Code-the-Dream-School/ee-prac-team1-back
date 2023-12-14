@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { getCoordinatesFromZipCode } = require('../utils/geocoding');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
+const { id } = require('date-fns/locale');
 
 
 const getAllActivities = async (req, res) => {
@@ -259,7 +260,7 @@ const deleteActivity = async (req, res) => {
   }
 };
 
-const addUserToActivity = async (req, res) => {
+const addUserToActivity = async (req, res, next) => {
   const { id: activityId } = req.params;
   const { userId } = req.user;
   const user = await User.findOne({ _id: userId }).select('-password');
@@ -276,8 +277,8 @@ const addUserToActivity = async (req, res) => {
     },
   });
   console.log(activityWithUser);
-  if (activityWithUser) {
-    throw new BadRequestError('There is a duplicate user in the activity');
+  if (activityWithUser?.length !== 0) {
+    throw new BadRequestError('You already signed up for this activity');
   }
   const activity = await Activity.findByIdAndUpdate(
     activityId,
@@ -291,7 +292,20 @@ const addUserToActivity = async (req, res) => {
   if (!activity) {
     throw new NotFoundError(`No activity with id ${activityId}`);
   } else {
-    res.status(StatusCodes.OK).json({ activity });
+    const activity = await Activity.findByIdAndUpdate(
+      activityId,
+      {
+        $push: {
+          players: { playerId: userId, firstName, lastName, profileImage },
+        },
+      },
+      { new: true }
+    );
+    if (!activity) {
+      throw new NotFoundError(`No activity with id ${activityId}`);
+    } else {
+      res.status(StatusCodes.OK).json({ activity });
+    }
   }
 };
 
