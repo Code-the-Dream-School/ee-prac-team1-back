@@ -261,38 +261,27 @@ const deleteActivity = async (req, res) => {
 };
 
 const addUserToActivity = async (req, res, next) => {
-  const { id: activityId } = req.params;
-  const { userId } = req.user;
-  const user = await User.findOne({ _id: userId }).select('-password');
-  if (!user) {
-    throw new NotFoundError(`No user with id ${userId}`);
-  }
-  const { firstName, lastName, profileImage } = user;
+  try {
+    const { id: activityId } = req.params;
+    const { userId } = req.user;
 
-  const activityWithUser = await Activity.findOne({
-    _id: activityId,
+    const user = await User.findOne({ _id: userId }).select('-password');
+    if (!user) {
+      throw new NotFoundError(`No user with id ${userId}`);
+    }
 
-    players: {
-      $elemMatch: { $elemMatch: { playerId: userId } },
-    },
-  });
-  console.log(activityWithUser);
-  if (activityWithUser?.length !== 0) {
-    throw new BadRequestError('You already signed up for this activity');
-  }
-  const activity = await Activity.findByIdAndUpdate(
-    activityId,
-    {
-      $push: {
-        players: { playerId: userId, firstName, lastName, profileImage },
-      },
-    },
-    { new: true }
-  );
-  if (!activity) {
-    throw new NotFoundError(`No activity with id ${activityId}`);
-  } else {
-    const activity = await Activity.findByIdAndUpdate(
+    const { firstName, lastName, profileImage } = user;
+
+    const activityWithUser = await Activity.findOne({
+      _id: activityId,
+      'players.playerId': userId,
+    });
+
+    if (activityWithUser) {
+      throw new BadRequestError('You already signed up for this activity');
+    }
+
+    const updatedActivity = await Activity.findByIdAndUpdate(
       activityId,
       {
         $push: {
@@ -301,11 +290,14 @@ const addUserToActivity = async (req, res, next) => {
       },
       { new: true }
     );
-    if (!activity) {
+
+    if (!updatedActivity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
-    } else {
-      res.status(StatusCodes.OK).json({ activity });
     }
+
+    res.status(StatusCodes.OK).json({ activity: updatedActivity });
+  } catch (error) {
+    next(error);
   }
 };
 
