@@ -242,24 +242,28 @@ const deleteActivity = async (req, res) => {
 };
 
 const addUserToActivity = async (req, res, next) => {
-  const { id: activityId } = req.params;
-  const { userId } = req.user;
-  const user = await User.findOne({ _id: userId }).select('-password');
-  if (!user) {
-    throw new NotFoundError(`No user with id ${userId}`);
-  }
-  const { firstName, lastName, profileImage } = user;
+  try {
+    const { id: activityId } = req.params;
+    const { userId } = req.user;
+    const user = await User.findOne({ _id: userId }).select('-password');
 
-  const activityWithUser = await Activity.find({
-    _id: activityId,
-    players: { $elemMatch: { playerId: userId } },
-  });
-  console.log(activityWithUser);
-  if (activityWithUser?.length !== 0) {
-    res
-      .status(StatusCodes.OK)
-      .json({ msg: 'You already signed up for this activity' });
-  } else {
+    if (!user) {
+      throw new NotFoundError(`No user with id ${userId}`);
+    }
+
+    const { firstName, lastName, profileImage } = user;
+
+    const activityWithUser = await Activity.find({
+      _id: activityId,
+      players: { $elemMatch: { playerId: userId } },
+    });
+
+    if (activityWithUser?.length !== 0) {
+      return res
+        .status(StatusCodes.OK)
+        .json({ msg: 'You already signed up for this activity' });
+    }
+
     const activity = await Activity.findByIdAndUpdate(
       activityId,
       {
@@ -269,11 +273,21 @@ const addUserToActivity = async (req, res, next) => {
       },
       { new: true }
     );
+
     if (!activity) {
       throw new NotFoundError(`No activity with id ${activityId}`);
-    } else {
-      res.status(StatusCodes.OK).json({ activity });
     }
+
+    const successMessage = `You successfully signed up for the activity: ${activity.activityType}, ${activity.location.address}, ${activity.location.city}, ${activity.location.state}, ${activity.location.zipCode}, ${activity.date}.`;
+
+    res.status(StatusCodes.OK).json({
+      message: successMessage,
+      activity: activity,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -303,7 +317,7 @@ const removeUserFromActivity = async (req, res) => {
       },
       { new: true }
     );
-
+    console.log('updatedActivity:', updatedActivity);
     const successMessage = `You successfully removed yourself from the activity: ${activity.activityType}, ${activity.location.address}, ${activity.location.city}, ${activity.location.state}, ${activity.location.zipCode}, ${activity.date}.`;
 
     res.status(StatusCodes.OK).json({
